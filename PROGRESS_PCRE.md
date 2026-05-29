@@ -2,6 +2,29 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Atomic Ordered Value Constructor (2026-05-29)
+
+- Branch: `master`.
+- Files changed: `Pcre_Values.thy`, `PROGRESS_PCRE.md`.
+- Extended checked relation:
+  - `pval_ordered_run`
+- New checked lemma:
+  - `pmatch_atomic_ordered_value_complete`
+- Statement summary:
+  - `pval_ordered_run` now has an atomic constructor that requires the wrapped
+    matcher's output list to start with the committed output;
+  - if the wrapped pattern is `pordered_supported`, every executable atomic
+    match has an ordered value witness `PAtomicVal v`.
+- Boundary:
+  - the constructor records first-result commitment explicitly; atomic is not
+    treated as a monotone context.
+- Verifier:
+  - `timeout 180s isabelle build -c -v -j 1 -o timeout=20 -d . PcrePOC` PASS,
+    with `PcrePOC` timing about 18.1 seconds elapsed.
+- Next smallest safe step:
+  - fold atomic support into a recursive supported-fragment predicate, or prove
+    capture-specific atomic interaction facts for PCRE-003.
+
 ## Ordered Value Run Invariants (2026-05-29)
 
 - Branch: `master`.

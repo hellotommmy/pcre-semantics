@@ -1162,6 +1162,10 @@ where
     "pval_possessive_zero_run fuel hi r st vs out \<Longrightarrow>
      pval_ordered_run (Suc fuel) (PQuant Possessive 0 hi r) st
        (PRepVal Possessive vs) out"
+| Ordered_Atomic:
+    "\<lbrakk>pmatch fuel r st = out # rest;
+      pval_ordered_run fuel r st v out\<rbrakk> \<Longrightarrow>
+     pval_ordered_run (Suc fuel) (PAtomic r) st (PAtomicVal v) out"
 
 definition pordered_supported :: "pcre \<Rightarrow> bool"
 where
@@ -1179,6 +1183,9 @@ proof induction
 next
   case (Ordered_Possessive_Zero fuel hi r st vs out)
   then show ?case by (rule pval_possessive_zero_run_sound_pmatch_quant)
+next
+  case (Ordered_Atomic fuel r st out rest v)
+  then show ?case by simp
 qed
 
 lemma pval_ordered_run_explains_state:
@@ -1191,6 +1198,10 @@ proof induction
 next
   case (Ordered_Possessive_Zero fuel hi r st vs out)
   then show ?case by (rule pval_possessive_zero_run_explains_state)
+next
+  case (Ordered_Atomic fuel r st out rest v)
+  show ?case
+    using pval_explains_state_atomic[OF Ordered_Atomic.IH] .
 qed
 
 lemma pval_ordered_run_consumes_prefix:
@@ -1252,6 +1263,27 @@ proof -
           using run by (rule Ordered_Possessive_Zero)
       qed
     qed
+  qed
+qed
+
+lemma pmatch_atomic_ordered_value_complete:
+  assumes "pordered_supported r"
+    and "out \<in> set (pmatch (Suc fuel) (PAtomic r) st)"
+  shows "\<exists>v. pval_ordered_run (Suc fuel) (PAtomic r) st v out"
+proof -
+  have first_mem: "out \<in> set (first_only (pmatch fuel r st))"
+    using assms(2) by simp
+  have inner_mem: "out \<in> set (pmatch fuel r st)"
+    using first_only_subset[OF first_mem] .
+  obtain rest where head: "pmatch fuel r st = out # rest"
+    using first_only_member_head[OF first_mem] ..
+  from pmatch_ordered_value_complete[OF assms(1) inner_mem]
+  obtain v where run: "pval_ordered_run fuel r st v out"
+    ..
+  show ?thesis
+  proof (intro exI[of _ "PAtomicVal v"])
+    show "pval_ordered_run (Suc fuel) (PAtomic r) st (PAtomicVal v) out"
+      using head run by (rule Ordered_Atomic)
   qed
 qed
 

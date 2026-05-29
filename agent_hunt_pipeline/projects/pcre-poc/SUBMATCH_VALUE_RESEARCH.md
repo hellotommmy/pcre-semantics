@@ -111,6 +111,11 @@ pmatch_ordered_value_complete:
 pval_ordered_run_explains_state:
   pval_ordered_run fuel r st v out ==>
   pval_explains_state st v out
+
+pmatch_atomic_ordered_value_complete:
+  pordered_supported r ==>
+  out in set (pmatch (Suc fuel) (PAtomic r) st) ==>
+  exists v. pval_ordered_run (Suc fuel) (PAtomic r) st v out
 ```
 
 ## Proof-Engineering Rules For This Layer
@@ -157,6 +162,11 @@ Status after the checked value/context work on 2026-05-29:
   `ptrace_atomic_first_result` and `ptrace_atomic_unique`. These state atomic
   first-result commitment, but do not yet prove capture interaction through an
   atomic context.
+- Ordered-value atomic infrastructure:
+  `pval_ordered_run` now has an atomic constructor and
+  `pmatch_atomic_ordered_value_complete`, requiring the wrapped matcher output
+  list to start with the committed output. This is closer to PCRE-003, but still
+  needs capture-specific interaction theorems.
 - Do not claim PCRE2-specific fidelity yet:
   the engine feedback loop still has Perl only; `pcre2test` is not installed.
 
