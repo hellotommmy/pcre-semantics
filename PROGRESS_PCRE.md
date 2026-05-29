@@ -2,6 +2,22 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Value Theory Split Map (2026-05-29)
+
+- Branch: `master`.
+- Files changed:
+  - `agent_hunt_pipeline/projects/pcre-poc/VALUE_THEORY_SPLIT_MAP.md`
+  - `PROGRESS_PCRE.md`
+- Added a line-oriented split map for `Pcre_Values.thy`, grouping current
+  definitions and theorem names into:
+  - `Pcre_Value_Base.thy`;
+  - `Pcre_Core_Values.thy`;
+  - `Pcre_Quant_Values.thy`;
+  - `Pcre_Ordered_Values.thy`.
+- Purpose:
+  - make the future proof-time recovery split mechanical and avoid mixing the
+    split with semantic changes.
+
 ## Possessive/Greedy Survey Alignment (2026-05-29)
 
 - Branch: `master`.
