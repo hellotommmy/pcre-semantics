@@ -233,6 +233,22 @@ The first-greedy theorem is stated only when possessive actually returns a
 trace, avoiding the finite-fuel case where possessive can commit to a recursive
 path that later exhausts fuel.
 
+Checked value-layer step now present:
+
+```isabelle
+pval_possessive_zero_run_sound_qmatch:
+  pval_possessive_zero_run fuel hi r st vs out ==>
+  out in set (qmatch fuel Possessive 0 hi r st)
+
+qmatch_possessive_zero_core_value_complete:
+  pcore_supported r ==>
+  out in set (qmatch fuel Possessive 0 hi r st) ==>
+  exists vs. pval_possessive_zero_run fuel hi r st vs out
+```
+
+This gives possessive zero-phase repetition a structured list-of-values
+inhabitation theorem for core-supported repeated bodies.
+
 Candidate E: atomic first-value commitment.
 
 ```isabelle

@@ -2,6 +2,32 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Possessive Zero-Phase Value Runs (2026-05-29)
+
+- Branch: `master`.
+- Files changed: `Pcre_Values.thy`, `PROGRESS_PCRE.md`.
+- New checked relation:
+  - `pval_possessive_zero_run`
+- New checked lemmas:
+  - `pval_possessive_zero_run_sound_qmatch`
+  - `qmatch_possessive_zero_core_value_complete`
+- Statement summary:
+  - a possessive zero-phase value run records the committed list of repeated
+    core values;
+  - every such value run is sound for executable
+    `qmatch fuel Possessive 0 hi r st`;
+  - when the repeated body is `pcore_supported`, every executable possessive
+    zero-phase output has a `pval list` witness.
+- Why this matters:
+  - this is the first repetition-specific value inhabitation relation, moving
+    beyond core single-match values toward ordered quantifier semantics.
+- Verifier:
+  - `timeout 180s isabelle build -c -v -j 1 -o timeout=20 -d . PcrePOC` PASS,
+    with `PcrePOC` timing about 18.1 seconds elapsed.
+- Next smallest safe step:
+  - add a bridge from `pval_possessive_zero_run` to `PRepVal Possessive vs`, or
+    define analogous ordered value runs for greedy/lazy zero-phase repetition.
+
 ## Core Values Through Monotone Contexts (2026-05-29)
 
 - Branch: `master`.

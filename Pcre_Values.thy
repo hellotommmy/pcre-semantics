@@ -998,4 +998,93 @@ proof -
     using assms(3) by (rule pmatch_core_run_complete)
 qed
 
+section \<open>Possessive zero-phase value runs\<close>
+
+inductive pval_possessive_zero_run ::
+  "nat \<Rightarrow> nat option \<Rightarrow> pcre \<Rightarrow> pstate \<Rightarrow> pval list \<Rightarrow> pstate \<Rightarrow> bool"
+where
+  PossZero_Bound:
+    "\<not> can_take hi \<Longrightarrow>
+     pval_possessive_zero_run (Suc fuel) hi r st [] st"
+| PossZero_NoNext:
+    "\<lbrakk>can_take hi;
+      progress_outputs st (pmatch fuel r st) = []\<rbrakk> \<Longrightarrow>
+     pval_possessive_zero_run (Suc fuel) hi r st [] st"
+| PossZero_Take:
+    "\<lbrakk>can_take hi;
+      progress_outputs st (pmatch fuel r st) = mid # rest;
+      pval_core_run fuel r st v mid;
+      pval_possessive_zero_run fuel (dec_bound hi) r mid vs out\<rbrakk> \<Longrightarrow>
+     pval_possessive_zero_run (Suc fuel) hi r st (v # vs) out"
+
+lemma pval_possessive_zero_run_sound_qmatch:
+  assumes "pval_possessive_zero_run fuel hi r st vs out"
+  shows "out \<in> set (qmatch fuel Possessive 0 hi r st)"
+  using assms
+proof induction
+  case (PossZero_Bound hi fuel r st)
+  then show ?case by simp
+next
+  case (PossZero_NoNext hi st fuel r)
+  then show ?case by (simp add: Let_def)
+next
+  case (PossZero_Take hi st fuel r mid rest v vs out)
+  then show ?case by (simp add: Let_def)
+qed
+
+lemma qmatch_possessive_zero_core_value_complete:
+  assumes "pcore_supported r"
+    and "out \<in> set (qmatch fuel Possessive 0 hi r st)"
+  shows "\<exists>vs. pval_possessive_zero_run fuel hi r st vs out"
+  using assms(2)
+proof (induct fuel arbitrary: hi st out)
+  case 0
+  then show ?case by simp
+next
+  case (Suc fuel)
+  show ?case
+  proof (cases "can_take hi")
+    case False
+    then have out_eq: "out = st" using Suc.prems by simp
+    show ?thesis
+    proof (intro exI[of _ "[]"])
+      show "pval_possessive_zero_run (Suc fuel) hi r st [] out"
+        unfolding out_eq using False by (rule PossZero_Bound)
+    qed
+  next
+    case True
+    let ?next = "progress_outputs st (pmatch fuel r st)"
+    show ?thesis
+    proof (cases ?next)
+      case Nil
+      then have out_eq: "out = st"
+        using Suc.prems True by (simp add: Let_def)
+      show ?thesis
+      proof (intro exI[of _ "[]"])
+        show "pval_possessive_zero_run (Suc fuel) hi r st [] out"
+          unfolding out_eq using True Nil by (rule PossZero_NoNext)
+      qed
+    next
+      case (Cons mid rest)
+      then have out_rec:
+        "out \<in> set (qmatch fuel Possessive 0 (dec_bound hi) r mid)"
+        using Suc.prems True by (simp add: Let_def)
+      from Suc.hyps[OF out_rec] obtain vs where rec:
+        "pval_possessive_zero_run fuel (dec_bound hi) r mid vs out"
+        ..
+      have mid_progress: "mid \<in> set (progress_outputs st (pmatch fuel r st))"
+        using Cons by simp
+      then have mid_match: "mid \<in> set (pmatch fuel r st)"
+        by (rule progress_outputs_subset)
+      obtain v where v: "pval_core_run fuel r st v mid"
+        using pmatch_core_run_complete[OF assms(1) mid_match] ..
+      show ?thesis
+      proof (intro exI[of _ "v # vs"])
+        show "pval_possessive_zero_run (Suc fuel) hi r st (v # vs) out"
+          using True Cons v rec by (rule PossZero_Take)
+      qed
+    qed
+  qed
+qed
+
 end
