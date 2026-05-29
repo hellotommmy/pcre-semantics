@@ -201,6 +201,22 @@ pval_trace (PAtomic r) st v out ==>
 This would connect atomic grouping to ordered value semantics and should support
 PCRE-003.
 
+Checked state-level infrastructure now present:
+
+```isabelle
+ptrace_atomic_first_result:
+  ptrace (Suc fuel) (PAtomic r) st out ==>
+  exists rest. pmatch fuel r st = out # rest
+
+ptrace_atomic_unique:
+  ptrace (Suc fuel) (PAtomic r) st out1 ==>
+  ptrace (Suc fuel) (PAtomic r) st out2 ==>
+  out1 = out2
+```
+
+The missing value-layer step is to pair the first output state with the first
+structured value for `r`, preserving capture updates.
+
 Candidate F: positive-lookaround capture fidelity gap.
 
 State and prove, for the current simplified kernel, that `PLook` preserves

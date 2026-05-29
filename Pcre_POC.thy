@@ -278,6 +278,23 @@ lemma first_only_subset:
   "x \<in> set (first_only xs) \<Longrightarrow> x \<in> set xs"
   by (cases xs) auto
 
+lemma first_only_length_le_one:
+  "length (first_only xs) \<le> 1"
+  by (cases xs) auto
+
+lemma first_only_member_head:
+  assumes "x \<in> set (first_only xs)"
+  shows "\<exists>rest. xs = x # rest"
+proof (cases xs)
+  case Nil
+  then show ?thesis using assms by simp
+next
+  case (Cons y rest)
+  then have "x = y" using assms by simp
+  then have "xs = x # rest" using Cons by simp
+  then show ?thesis ..
+qed
+
 lemma progress_outputs_subset:
   "x \<in> set (progress_outputs st xs) \<Longrightarrow> x \<in> set xs"
   by (auto simp add: progress_outputs_def)
@@ -1635,6 +1652,39 @@ lemma ptrace_atomic_iff:
   "ptrace (Suc fuel) (PAtomic r) st out \<longleftrightarrow>
     out \<in> set (first_only (pmatch fuel r st))"
   by (simp add: ptrace_def)
+
+lemma ptrace_atomic_first_result:
+  assumes "ptrace (Suc fuel) (PAtomic r) st out"
+  shows "\<exists>rest. pmatch fuel r st = out # rest"
+proof -
+  have out: "out \<in> set (first_only (pmatch fuel r st))"
+    using assms by (simp add: ptrace_atomic_iff)
+  show ?thesis
+  proof (cases "pmatch fuel r st")
+    case Nil
+    then show ?thesis using out by simp
+  next
+    case (Cons x rest)
+    then have "out = x" using out by simp
+    then have "pmatch fuel r st = out # rest" using Cons by simp
+    then show ?thesis ..
+  qed
+qed
+
+lemma ptrace_atomic_unique:
+  assumes "ptrace (Suc fuel) (PAtomic r) st out1"
+    and "ptrace (Suc fuel) (PAtomic r) st out2"
+  shows "out1 = out2"
+proof -
+  have len: "length (first_only (pmatch fuel r st)) \<le> 1"
+    using first_only_length_le_one .
+  have out1: "out1 \<in> set (first_only (pmatch fuel r st))"
+    using assms(1) by (simp add: ptrace_atomic_iff)
+  have out2: "out2 \<in> set (first_only (pmatch fuel r st))"
+    using assms(2) by (simp add: ptrace_atomic_iff)
+  show ?thesis
+    using length_le_one_set_unique[OF len out1 out2] .
+qed
 
 lemma ptrace_look_iff:
   "ptrace (Suc fuel) (PLook positive r) st out \<longleftrightarrow>

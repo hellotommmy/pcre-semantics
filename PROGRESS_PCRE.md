@@ -2,6 +2,30 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Atomic First-Only Trace Bridge (2026-05-29)
+
+- Branch: `master`.
+- Files changed: `Pcre_POC.thy`, `PROGRESS_PCRE.md`.
+- New checked lemmas:
+  - `first_only_length_le_one`
+  - `first_only_member_head`
+  - `ptrace_atomic_first_result`
+  - `ptrace_atomic_unique`
+- Statement summary:
+  - any successful atomic trace comes from the head of the wrapped matcher's
+    output list;
+  - atomic traces are unique for the same wrapped regex, state, and fuel.
+- Proof-engineering note:
+  - an initial `blast`/`auto` shape caused clean builds to hit the session
+    timeout before leaving `Pcre_POC.thy`; replacing it with explicit list
+    cases restored `timeout=20` cold checks.
+- Verifier:
+  - `timeout 180s isabelle build -c -v -j 1 -o timeout=20 -d . PcrePOC` PASS,
+    with `PcrePOC` timing about 16.6 seconds elapsed.
+- Next smallest safe step:
+  - connect atomic uniqueness with capture update invariants, or lift atomic
+    first-only behavior to structured values once repetition values are added.
+
 ## Possessive First-Result Bridge (2026-05-29)
 
 - Branch: `master`.
