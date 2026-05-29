@@ -65,7 +65,8 @@ Last updated: 2026-05-29 (standalone repo created)
   - `Pcre_Quant_Values.thy`;
   - `Pcre_Ordered_Values.thy`.
 - Rationale:
-  - `Pcre_Values.thy` is now about 1,584 lines;
+  - `Pcre_Values.thy` is now about 1,527 lines after deferring the
+    fullmatch/value wrapper;
   - `-o timeout=20` passes but `-o timeout=18` fails;
   - adding greedy/lazy value runs directly to the hot theory would risk
     breaking the fast feedback loop.
