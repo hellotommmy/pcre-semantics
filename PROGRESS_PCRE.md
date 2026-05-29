@@ -127,6 +127,16 @@ Last updated: 2026-05-29 (standalone repo created)
     first recovering proof-time headroom or splitting the work into a more
     focused theory/session.
 
+Update after the fullmatch ordered-value bridge:
+
+- `timeout 180s isabelle build -c -v -j 1 -o timeout=19 -d . PcrePOC`
+  still PASS, with `PcrePOC` timing about 17.9 seconds elapsed on that run.
+- `timeout 180s isabelle build -c -v -j 1 -o timeout=18 -d . PcrePOC`
+  still FAILS at the session timeout boundary.
+- Consequence unchanged:
+  - the next greedy/lazy value relation should not be added to the current hot
+    theory without splitting or recovering proof-time headroom.
+
 ## Atomic-Saturated Ordered Value Iff (2026-05-29)
 
 - Branch: `master`.
