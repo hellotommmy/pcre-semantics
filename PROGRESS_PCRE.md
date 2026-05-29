@@ -2,6 +2,32 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Fuelled Core Value Bridge (2026-05-29)
+
+- Branch: `master`.
+- Files changed: `Pcre_Values.thy`, `PROGRESS_PCRE.md`.
+- New checked relation:
+  - `pval_core_run`, a fuelled state-indexed value relation that mirrors the
+    executable `pmatch` fuel discipline for the same core fragment as
+    `pval_core_trace`.
+- New checked lemmas:
+  - `pval_core_run_trace`
+  - `pval_core_run_explains_state`
+  - `pval_core_run_sound_pmatch`
+- Statement summary:
+  - every fuelled core value run is an un-fuelled core value trace;
+  - every fuelled core value run explains its state transition via
+    `pval_explains_state`;
+  - every fuelled core value run is sound for the executable matcher:
+    `out \<in> set (pmatch fuel r st)`.
+- Verifier:
+  - `timeout 180s isabelle build -v -j 1 -o timeout=20 -d . PcrePOC` PASS,
+    with `PcrePOC` timing about 17 seconds elapsed.
+- Next smallest safe step:
+  - define a syntactic predicate for the core fragment and prove a converse
+    witness theorem for selected constructors, or start a separate ordered
+    relation for quantifier value lists.
+
 ## Core Value Inhabitation Relation (2026-05-29)
 
 - Branch: `master`.

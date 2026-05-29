@@ -409,4 +409,258 @@ lemma pval_core_trace_spine:
     pval_explains_state_spine
   by blast
 
+section \<open>Fuelled core value runs\<close>
+
+text \<open>
+  The fuelled relation mirrors the executable matcher's fuel discipline.  It is
+  intended as the first bridge from structured values back to `pmatch`.
+\<close>
+
+inductive pval_core_run ::
+  "nat \<Rightarrow> pcre \<Rightarrow> pstate \<Rightarrow> pval \<Rightarrow> pstate \<Rightarrow> bool"
+where
+  CoreRun_Eps:
+    "pval_core_run (Suc fuel) PEps st PVoid st"
+| CoreRun_Char:
+    "pval_core_run
+      (Suc fuel)
+      (PChar c)
+      (PState l (c # s) caps)
+      (PCharVal c)
+      (PState (l @ [c]) s caps)"
+| CoreRun_Class:
+    "c \<in> C \<Longrightarrow>
+     pval_core_run
+      (Suc fuel)
+      (PClass C)
+      (PState l (c # s) caps)
+      (PClassVal c)
+      (PState (l @ [c]) s caps)"
+| CoreRun_Dot:
+    "c \<notin> excluded \<Longrightarrow>
+     pval_core_run
+      (Suc fuel)
+      (PDot excluded)
+      (PState l (c # s) caps)
+      (PDotVal c)
+      (PState (l @ [c]) s caps)"
+| CoreRun_Seq:
+    "\<lbrakk>pval_core_run fuel r1 st v1 mid;
+      pval_core_run fuel r2 mid v2 out\<rbrakk> \<Longrightarrow>
+     pval_core_run (Suc fuel) (PSeq r1 r2) st (PSeqVal v1 v2) out"
+| CoreRun_Alt_Left:
+    "pval_core_run fuel r1 st v out \<Longrightarrow>
+     pval_core_run (Suc fuel) (PAlt r1 r2) st (PLeftVal v) out"
+| CoreRun_Alt_Right:
+    "pval_core_run fuel r2 st v out \<Longrightarrow>
+     pval_core_run (Suc fuel) (PAlt r1 r2) st (PRightVal v) out"
+| CoreRun_Capture:
+    "pval_core_run fuel r (PState l s caps) v (PState l' s' caps') \<Longrightarrow>
+     pval_core_run
+      (Suc fuel)
+      (PCapture n r)
+      (PState l s caps)
+      (PCaptureVal n v)
+      (PState l' s' (caps'(n := Some (pflat v))))"
+| CoreRun_Backref:
+    "\<lbrakk>caps n = Some w; starts_with w s\<rbrakk> \<Longrightarrow>
+     pval_core_run
+      (Suc fuel)
+      (PBackref n)
+      (PState l s caps)
+      (PBackrefVal n w)
+      (PState (l @ w) (drop (length w) s) caps)"
+| CoreRun_Cond_Yes:
+    "\<lbrakk>caps n = Some w;
+      pval_core_run fuel yes (PState l s caps) v out\<rbrakk> \<Longrightarrow>
+     pval_core_run (Suc fuel) (PCond n yes no) (PState l s caps)
+      (PCondYesVal v) out"
+| CoreRun_Cond_No:
+    "\<lbrakk>caps n = None;
+      pval_core_run fuel no (PState l s caps) v out\<rbrakk> \<Longrightarrow>
+     pval_core_run (Suc fuel) (PCond n yes no) (PState l s caps)
+      (PCondNoVal v) out"
+| CoreRun_WordBoundary:
+    "word_boundary W l s = positive \<Longrightarrow>
+     pval_core_run
+      (Suc fuel)
+      (PWordBoundary W positive)
+      (PState l s caps)
+      PAssertVal
+      (PState l s caps)"
+| CoreRun_LineStart:
+    "line_start NL l \<Longrightarrow>
+     pval_core_run
+      (Suc fuel)
+      (PLineStart NL)
+      (PState l s caps)
+      PAssertVal
+      (PState l s caps)"
+| CoreRun_LineEnd:
+    "line_end NL s \<Longrightarrow>
+     pval_core_run
+      (Suc fuel)
+      (PLineEnd NL)
+      (PState l s caps)
+      PAssertVal
+      (PState l s caps)"
+| CoreRun_Start:
+    "pval_core_run
+      (Suc fuel)
+      PStart
+      (PState [] s caps)
+      PAssertVal
+      (PState [] s caps)"
+| CoreRun_End:
+    "pval_core_run
+      (Suc fuel)
+      PEnd
+      (PState l [] caps)
+      PAssertVal
+      (PState l [] caps)"
+
+lemma pval_core_run_trace:
+  assumes "pval_core_run fuel r st v out"
+  shows "pval_core_trace r st v out"
+  using assms
+proof induction
+  case (CoreRun_Eps fuel st)
+  then show ?case by (rule Core_Eps)
+next
+  case (CoreRun_Char fuel c l s caps)
+  then show ?case by (rule Core_Char)
+next
+  case (CoreRun_Class c C fuel l s caps)
+  then show ?case by (rule Core_Class)
+next
+  case (CoreRun_Dot c excluded fuel l s caps)
+  then show ?case by (rule Core_Dot)
+next
+  case (CoreRun_Seq fuel r1 st v1 mid r2 v2 out)
+  show ?case
+    using CoreRun_Seq.IH(1) CoreRun_Seq.IH(2) by (rule Core_Seq)
+next
+  case (CoreRun_Alt_Left fuel r1 st v out r2)
+  show ?case
+    using CoreRun_Alt_Left.IH by (rule Core_Alt_Left)
+next
+  case (CoreRun_Alt_Right fuel r2 st v out r1)
+  show ?case
+    using CoreRun_Alt_Right.IH by (rule Core_Alt_Right)
+next
+  case (CoreRun_Capture fuel r l s caps v l' s' caps' n)
+  show ?case
+    using CoreRun_Capture.IH by (rule Core_Capture)
+next
+  case (CoreRun_Backref caps n w s fuel l)
+  show ?case
+    using CoreRun_Backref.hyps by (rule Core_Backref)
+next
+  case (CoreRun_Cond_Yes caps n w fuel yes l s v out no)
+  show ?case
+    using CoreRun_Cond_Yes.hyps(1) CoreRun_Cond_Yes.IH by (rule Core_Cond_Yes)
+next
+  case (CoreRun_Cond_No caps n fuel no l s v out yes)
+  show ?case
+    using CoreRun_Cond_No.hyps(1) CoreRun_Cond_No.IH by (rule Core_Cond_No)
+next
+  case (CoreRun_WordBoundary W l s positive fuel caps)
+  show ?case
+    using CoreRun_WordBoundary.hyps by (rule Core_WordBoundary)
+next
+  case (CoreRun_LineStart NL l fuel s caps)
+  show ?case
+    using CoreRun_LineStart.hyps by (rule Core_LineStart)
+next
+  case (CoreRun_LineEnd NL s fuel l caps)
+  show ?case
+    using CoreRun_LineEnd.hyps by (rule Core_LineEnd)
+next
+  case (CoreRun_Start fuel s caps)
+  then show ?case by (rule Core_Start)
+next
+  case (CoreRun_End fuel l caps)
+  then show ?case by (rule Core_End)
+qed
+
+lemma pval_core_run_explains_state:
+  assumes "pval_core_run fuel r st v out"
+  shows "pval_explains_state st v out"
+  using pval_core_trace_explains_state pval_core_run_trace assms by blast
+
+lemma pval_core_run_sound_pmatch:
+  assumes "pval_core_run fuel r st v out"
+  shows "out \<in> set (pmatch fuel r st)"
+  using assms
+proof induction
+  case (CoreRun_Eps fuel st)
+  then show ?case by simp
+next
+  case (CoreRun_Char fuel c l s caps)
+  then show ?case by simp
+next
+  case (CoreRun_Class c C fuel l s caps)
+  then show ?case by simp
+next
+  case (CoreRun_Dot c excluded fuel l s caps)
+  then show ?case by simp
+next
+  case (CoreRun_Seq fuel r1 st v1 mid r2 v2 out)
+  have mid: "mid \<in> set (pmatch fuel r1 st)"
+    using CoreRun_Seq.IH(1) .
+  have out: "out \<in> set (pmatch fuel r2 mid)"
+    using CoreRun_Seq.IH(2) .
+  then have "out \<in> set (concat (map (pmatch fuel r2) (pmatch fuel r1 st)))"
+    using mid by auto
+  then show ?case by simp
+next
+  case (CoreRun_Alt_Left fuel r1 st v out r2)
+  then show ?case by simp
+next
+  case (CoreRun_Alt_Right fuel r2 st v out r1)
+  then show ?case by simp
+next
+  case (CoreRun_Capture fuel r l s caps v l' s' caps' n)
+  have inner: "PState l' s' caps' \<in> set (pmatch fuel r (PState l s caps))"
+    using CoreRun_Capture.IH .
+  have explains: "pval_explains_state (PState l s caps) v (PState l' s' caps')"
+    using pval_core_run_explains_state CoreRun_Capture.hyps by blast
+  then have cap_text: "drop (length l) l' = pflat v"
+    by (simp add: pval_explains_state_def)
+  have mapped:
+    "capture_update n l (PState l' s' caps') =
+      PState l' s' (caps'(n := Some (pflat v)))"
+    using cap_text by (simp add: capture_update_def)
+  have img:
+    "capture_update n l (PState l' s' caps') \<in>
+      capture_update n l ` set (pmatch fuel r (PState l s caps))"
+    using inner by (rule imageI)
+  show ?case
+    using img mapped by simp
+next
+  case (CoreRun_Backref caps n w s fuel l)
+  then show ?case by simp
+next
+  case (CoreRun_Cond_Yes caps n w fuel yes l s v out no)
+  then show ?case by simp
+next
+  case (CoreRun_Cond_No caps n fuel no l s v out yes)
+  then show ?case by simp
+next
+  case (CoreRun_WordBoundary W l s positive fuel caps)
+  then show ?case by simp
+next
+  case (CoreRun_LineStart NL l fuel s caps)
+  then show ?case by simp
+next
+  case (CoreRun_LineEnd NL s fuel l caps)
+  then show ?case by simp
+next
+  case (CoreRun_Start fuel s caps)
+  then show ?case by simp
+next
+  case (CoreRun_End fuel l caps)
+  then show ?case by simp
+qed
+
 end
