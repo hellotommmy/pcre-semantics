@@ -1181,6 +1181,30 @@ next
   then show ?case by (rule pval_possessive_zero_run_sound_pmatch_quant)
 qed
 
+lemma pval_ordered_run_explains_state:
+  assumes "pval_ordered_run fuel r st v out"
+  shows "pval_explains_state st v out"
+  using assms
+proof induction
+  case (Ordered_Core fuel r st v out)
+  then show ?case by (rule pval_core_run_explains_state)
+next
+  case (Ordered_Possessive_Zero fuel hi r st vs out)
+  then show ?case by (rule pval_possessive_zero_run_explains_state)
+qed
+
+lemma pval_ordered_run_consumes_prefix:
+  assumes "pval_ordered_run fuel r st v out"
+  shows "consumes_prefix st out"
+  using pval_explains_state_consumes_prefix[
+    OF pval_ordered_run_explains_state[OF assms]] .
+
+lemma pval_ordered_run_spine:
+  assumes "pval_ordered_run fuel r st v out"
+  shows "pleft out @ pright out = pleft st @ pright st"
+  using pval_explains_state_spine[
+    OF pval_ordered_run_explains_state[OF assms]] .
+
 lemma pmatch_ordered_value_complete:
   assumes "pordered_supported r"
     and "out \<in> set (pmatch fuel r st)"

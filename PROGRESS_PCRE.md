@@ -2,6 +2,29 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Ordered Value Run Invariants (2026-05-29)
+
+- Branch: `master`.
+- Files changed: `Pcre_Values.thy`, `PROGRESS_PCRE.md`.
+- New checked lemmas:
+  - `pval_ordered_run_explains_state`
+  - `pval_ordered_run_consumes_prefix`
+  - `pval_ordered_run_spine`
+- Statement summary:
+  - every ordered value run explains its state transition via
+    `pval_explains_state`;
+  - ordered value runs therefore consume a prefix and preserve the subject
+    spine.
+- Why this matters:
+  - these are the basic semantic invariants needed before extending
+    `pval_ordered_run` with greedy/lazy or atomic value cases.
+- Verifier:
+  - `timeout 180s isabelle build -c -v -j 1 -o timeout=20 -d . PcrePOC` PASS,
+    with `PcrePOC` timing about 18.4 seconds elapsed.
+- Next smallest safe step:
+  - add ordered greedy/lazy value constructors or atomic first-value
+    constructors while preserving these invariants.
+
 ## PCRE2 Tooling Recheck (2026-05-29)
 
 - Branch: `master`.
