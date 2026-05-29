@@ -49,6 +49,16 @@ datatype pcre =
 | PStart
 | PEnd
 
+datatype prctx =
+  PHole
+| PSeqRight prctx pcre
+
+fun plug_right_context :: "prctx \<Rightarrow> pcre \<Rightarrow> pcre"
+where
+  "plug_right_context PHole r = r"
+| "plug_right_context (PSeqRight C tail) r =
+    PSeq (plug_right_context C r) tail"
+
 definition empty_caps :: capenv
 where
   "empty_caps = (\<lambda>_. None)"
@@ -1236,6 +1246,40 @@ next
     using Suc by simp
 qed
 
+lemma pmatch_right_context_mono:
+  assumes step: "\<And>fuel st. set (pmatch fuel r st) \<subseteq> set (pmatch fuel r' st)"
+  shows "set (pmatch fuel (plug_right_context C r) st) \<subseteq>
+   set (pmatch fuel (plug_right_context C r') st)"
+proof (induct C arbitrary: fuel st)
+  case PHole
+  show ?case using step by simp
+next
+  case (PSeqRight C tail)
+  show ?case
+  proof (cases fuel)
+    case 0
+    then show ?thesis by simp
+  next
+    case (Suc fuel')
+    have inner_subset:
+      "set (pmatch fuel' (plug_right_context C r) st) \<subseteq>
+       set (pmatch fuel' (plug_right_context C r') st)"
+      by (rule PSeqRight.hyps)
+    have "set (concat
+        (map (pmatch fuel' tail) (pmatch fuel' (plug_right_context C r) st))) \<subseteq>
+      set (concat
+        (map (pmatch fuel' tail) (pmatch fuel' (plug_right_context C r') st)))"
+      by (rule set_concat_map_mono) (rule inner_subset)
+    then show ?thesis
+      using Suc by simp
+  qed
+qed
+
+lemma pmatch_right_context_possessive_quant_subset_greedy:
+  "set (pmatch fuel (plug_right_context C (PQuant Possessive lo hi r)) st) \<subseteq>
+   set (pmatch fuel (plug_right_context C (PQuant Greedy lo hi r)) st)"
+  by (rule pmatch_right_context_mono) (rule pmatch_possessive_quant_subset_greedy)
+
 lemma pcre_fullmatch_language_possessive_quant_subset_greedy:
   "pcre_fullmatch_language fuel (PQuant Possessive lo hi r) \<subseteq>
    pcre_fullmatch_language fuel (PQuant Greedy lo hi r)"
@@ -1279,6 +1323,32 @@ proof
   then have "pcre_fullmatch fuel (PSeq (PQuant Greedy lo hi r) tail) s"
     using out(2) by (auto simp add: pcre_fullmatch_def)
   then show "s \<in> pcre_fullmatch_language fuel (PSeq (PQuant Greedy lo hi r) tail)"
+    by (simp add: pcre_fullmatch_language_def)
+qed
+
+lemma pcre_fullmatch_language_right_context_possessive_quant_subset_greedy:
+  "pcre_fullmatch_language fuel (plug_right_context C (PQuant Possessive lo hi r)) \<subseteq>
+   pcre_fullmatch_language fuel (plug_right_context C (PQuant Greedy lo hi r))"
+proof
+  fix s
+  assume "s \<in>
+    pcre_fullmatch_language fuel (plug_right_context C (PQuant Possessive lo hi r))"
+  then obtain out where out:
+    "out \<in> set (pmatch fuel (plug_right_context C (PQuant Possessive lo hi r))
+      (PState [] s empty_caps))"
+    "pright out = []"
+    by (auto simp add: pcre_fullmatch_language_def pcre_fullmatch_def)
+  have "out \<in> set (pmatch fuel (plug_right_context C (PQuant Greedy lo hi r))
+      (PState [] s empty_caps))"
+    using out(1)
+      pmatch_right_context_possessive_quant_subset_greedy[
+        of fuel C lo hi r "PState [] s empty_caps"]
+    by (rule set_rev_mp)
+  then have "pcre_fullmatch fuel
+      (plug_right_context C (PQuant Greedy lo hi r)) s"
+    using out(2) by (auto simp add: pcre_fullmatch_def)
+  then show "s \<in>
+    pcre_fullmatch_language fuel (plug_right_context C (PQuant Greedy lo hi r))"
     by (simp add: pcre_fullmatch_language_def)
 qed
 

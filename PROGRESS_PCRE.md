@@ -2,6 +2,33 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Possessive Subset Through Right Contexts (2026-05-29)
+
+- Branch: `master`.
+- Files changed: `Pcre_POC.thy`, `PROGRESS_PCRE.md`.
+- New checked definitions:
+  - `prctx`
+  - `plug_right_context`
+- New checked lemmas:
+  - `pmatch_right_context_mono`
+  - `pmatch_right_context_possessive_quant_subset_greedy`
+  - `pcre_fullmatch_language_right_context_possessive_quant_subset_greedy`
+- Statement summary:
+  - any matcher-output subset relation is preserved through right-nested
+    sequence contexts;
+  - as an instance, possessive quantifier fullmatch languages are subsets of
+    greedy quantifier fullmatch languages under any checked right context.
+- Why this matters:
+  - this is a more reusable match-set theorem than the one-frame `PSeq` fact
+    and gives a natural route from the `ababa` sanity test to a general
+    theorem shape.
+- Verifier:
+  - `timeout 180s isabelle build -c -v -j 1 -o timeout=20 -d . PcrePOC` PASS,
+    with `PcrePOC` timing about 16.1 seconds elapsed.
+- Next smallest safe step:
+  - add a tiny strictness witness as a sanity corollary, or define an ordered
+    value list relation so the context theorem can talk about value inhabitants.
+
 ## Possessive Fullmatch Language Subset (2026-05-29)
 
 - Branch: `master`.
