@@ -1065,6 +1065,12 @@ lemma length_le_one_set_unique:
   shows "x = y"
   using assms by (cases xs) auto
 
+lemma length_le_one_member_singleton:
+  assumes "length xs \<le> 1"
+    and "x \<in> set xs"
+  shows "xs = [x]"
+  using assms by (cases xs) auto
+
 lemma qmatch_greedy_lazy_set:
   "set (qmatch fuel Greedy lo hi r st) = set (qmatch fuel Lazy lo hi r st)"
 proof (induct fuel arbitrary: lo hi st)
@@ -1225,6 +1231,48 @@ next
       case (Cons mid rest)
       then show ?thesis
         using True Suc.hyps[of "dec_bound hi" mid] by (simp add: Let_def)
+    qed
+  qed
+qed
+
+lemma qmatch_possessive_zero_first_greedy:
+  assumes "qmatch fuel Possessive 0 hi r st = [out]"
+  shows "qmatch fuel Greedy 0 hi r st \<noteq> [] \<and>
+    hd (qmatch fuel Greedy 0 hi r st) = out"
+  using assms
+proof (induct fuel arbitrary: hi st out)
+  case 0
+  then show ?case by simp
+next
+  case (Suc fuel)
+  show ?case
+  proof (cases "can_take hi")
+    case False
+    then show ?thesis using Suc.prems by simp
+  next
+    case True
+    let ?next = "progress_outputs st (pmatch fuel r st)"
+    show ?thesis
+    proof (cases ?next)
+      case Nil
+      then show ?thesis
+        using True Suc.prems by (simp add: Let_def)
+    next
+      case (Cons mid rest)
+      then have rec_poss:
+        "qmatch fuel Possessive 0 (dec_bound hi) r mid = [out]"
+        using True Suc.prems by (simp add: Let_def)
+      then have rec_greedy:
+        "qmatch fuel Greedy 0 (dec_bound hi) r mid \<noteq> []"
+        "hd (qmatch fuel Greedy 0 (dec_bound hi) r mid) = out"
+        using Suc.hyps by blast+
+      have greedy_unfold:
+        "qmatch (Suc fuel) Greedy 0 hi r st =
+          qmatch fuel Greedy 0 (dec_bound hi) r mid @
+          concat (map (qmatch fuel Greedy 0 (dec_bound hi) r) rest) @ [st]"
+        using True Cons by (simp add: Let_def)
+      then show ?thesis
+        using rec_greedy by simp
     qed
   qed
 qed
@@ -1689,6 +1737,21 @@ lemma qtrace_possessive_zero_unique:
     qmatch_possessive_zero_length_le_one[of fuel hi r st]
     length_le_one_set_unique[of "qmatch fuel Possessive 0 hi r st" out1 out2]
   by (simp add: qtrace_def)
+
+lemma qtrace_possessive_zero_first_greedy:
+  assumes "qtrace fuel Possessive 0 hi r st out"
+  shows "qmatch fuel Greedy 0 hi r st \<noteq> [] \<and>
+    hd (qmatch fuel Greedy 0 hi r st) = out"
+proof -
+  have poss_len: "length (qmatch fuel Possessive 0 hi r st) \<le> 1"
+    using qmatch_possessive_zero_length_le_one .
+  have poss_mem: "out \<in> set (qmatch fuel Possessive 0 hi r st)"
+    using assms by (simp add: qtrace_def)
+  have poss_eq: "qmatch fuel Possessive 0 hi r st = [out]"
+    using length_le_one_member_singleton[OF poss_len poss_mem] .
+  then show ?thesis
+    by (rule qmatch_possessive_zero_first_greedy)
+qed
 
 lemma qtrace_linear_zero_iff:
   assumes "can_take hi"

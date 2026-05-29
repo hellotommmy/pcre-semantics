@@ -2,6 +2,32 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Possessive First-Result Bridge (2026-05-29)
+
+- Branch: `master`.
+- Files changed: `Pcre_POC.thy`, `PROGRESS_PCRE.md`.
+- New checked lemmas:
+  - `length_le_one_member_singleton`
+  - `qmatch_possessive_zero_first_greedy`
+  - `qtrace_possessive_zero_first_greedy`
+- Statement summary:
+  - if zero-phase possessive repetition returns `[out]`, then the same `out`
+    is the head of the corresponding greedy repetition output list;
+  - equivalently, any relational zero-phase possessive trace is the first
+    greedy executable result for the same matcher state and fuel.
+- Why this matters:
+  - this is a general first-result/commitment theorem for the current kernel,
+    closer to PCRE-002 than a set-inclusion fact.
+  - It avoids the finite-fuel corner case where possessive can return `[]`
+    after choosing a recursive path that runs out of fuel while greedy still has
+    a base fallback.
+- Verifier:
+  - `timeout 180s isabelle build -c -v -j 1 -o timeout=20 -d . PcrePOC` PASS,
+    with `PcrePOC` timing about 16.7 seconds elapsed.
+- Next smallest safe step:
+  - lift the first-result bridge to `pval_core_run`/future repetition values,
+    or relate atomic grouping to this first greedy result theorem.
+
 ## Possessive Zero-Phase Determinism (2026-05-29)
 
 - Branch: `master`.

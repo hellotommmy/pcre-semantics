@@ -178,10 +178,18 @@ qtrace_possessive_zero_unique:
   qtrace fuel Possessive 0 hi r st out1 ==>
   qtrace fuel Possessive 0 hi r st out2 ==>
   out1 = out2
+
+qtrace_possessive_zero_first_greedy:
+  qtrace fuel Possessive 0 hi r st out ==>
+  qmatch fuel Greedy 0 hi r st != [] /\
+  hd (qmatch fuel Greedy 0 hi r st) = out
 ```
 
 This is not enough by itself for the ordered-value bounty, but it captures the
 general zero-phase commitment property that the `ababa` smoke test relies on.
+The first-greedy theorem is stated only when possessive actually returns a
+trace, avoiding the finite-fuel case where possessive can commit to a recursive
+path that later exhausts fuel.
 
 Candidate E: atomic first-value commitment.
 
