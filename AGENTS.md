@@ -32,3 +32,7 @@ Rules:
   plus explicit value cases, reducing cold pilot checks from about 200 seconds
   to about 16 seconds. Apply the same discipline here before adding PCRE value
   or submatch inhabitation layers.
+- For existential or constructor goals, avoid handing schematic witnesses to
+  broad `blast`/`auto`. Name the witness-producing fact, then use explicit
+  `proof (intro exI[of _ ...])`, constructor rules, and local `cases` so the
+  command checks immediately.

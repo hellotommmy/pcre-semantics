@@ -33,3 +33,7 @@ Proof-performance rules:
   replaced a slow `fun (sequential)` over many value patterns by a `primrec`
   over the regex with explicit value cases, cutting cold checks from roughly
   200 seconds to roughly 16 seconds.
+- For existential/constructor proof obligations, name the local witness fact
+  and use explicit `exI`, constructor rules, and `cases`. Do not leave
+  schematic witnesses for broad `blast`/`auto`; even short-looking lines can
+  push clean checks over the timeout.

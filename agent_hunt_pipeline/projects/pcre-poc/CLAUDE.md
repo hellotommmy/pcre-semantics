@@ -207,6 +207,9 @@ Preferred repairs:
   handing automation the whole matcher or value relation;
 - prove small named facts such as output shape, consumed substring, capture
   update, and first-result facts before the final theorem;
+- when a theorem needs an existential witness, introduce it explicitly with
+  `exI[of _ ...]` and a named local fact instead of asking `blast` or `auto` to
+  discover schematic witnesses;
 - avoid global simp rules for recursive matchers unless termination and rewrite
   direction are clearly harmless.
 
