@@ -158,6 +158,20 @@ pmatch_value_sound:
 This is a real semantic layer, not a wrapper, because it explains every
 successful engine path with a structured submatch value.
 
+Checked fragment bridge now present:
+
+```isabelle
+pmatch_mon_context_core_run_complete:
+  pmonctx_core_supported C ==>
+  pcore_supported r ==>
+  out in set (pmatch fuel (plug_mon_context C r) st) ==>
+  exists v. pval_core_run fuel (plug_mon_context C r) st v out
+```
+
+This is the current strongest value-inhabitation theorem. It covers the core
+fragment under monotone sequence/alternation/capture contexts, but not yet
+ordered repetition values.
+
 Candidate B: value completeness for bounded traces.
 
 ```isabelle

@@ -266,6 +266,26 @@ where
 | "pcore_supported PStart = True"
 | "pcore_supported PEnd = True"
 
+fun pmonctx_core_supported :: "pmonctx \<Rightarrow> bool"
+where
+  "pmonctx_core_supported PMHole = True"
+| "pmonctx_core_supported (PMSeqLeft C tail) =
+    (pmonctx_core_supported C \<and> pcore_supported tail)"
+| "pmonctx_core_supported (PMSeqRight prefix C) =
+    (pcore_supported prefix \<and> pmonctx_core_supported C)"
+| "pmonctx_core_supported (PMAltLeft C other) =
+    (pmonctx_core_supported C \<and> pcore_supported other)"
+| "pmonctx_core_supported (PMAltRight other C) =
+    (pcore_supported other \<and> pmonctx_core_supported C)"
+| "pmonctx_core_supported (PMCapture n C) =
+    pmonctx_core_supported C"
+
+lemma pcore_supported_plug_mon_context:
+  assumes "pmonctx_core_supported C"
+    and "pcore_supported r"
+  shows "pcore_supported (plug_mon_context C r)"
+  using assms by (induct C) simp_all
+
 inductive pval_core_trace :: "pcre \<Rightarrow> pstate \<Rightarrow> pval \<Rightarrow> pstate \<Rightarrow> bool"
 where
   Core_Eps:
@@ -964,6 +984,18 @@ next
       qed
     qed
   qed
+qed
+
+lemma pmatch_mon_context_core_run_complete:
+  assumes "pmonctx_core_supported C"
+    and "pcore_supported r"
+    and "out \<in> set (pmatch fuel (plug_mon_context C r) st)"
+  shows "\<exists>v. pval_core_run fuel (plug_mon_context C r) st v out"
+proof -
+  have "pcore_supported (plug_mon_context C r)"
+    using assms(1,2) by (rule pcore_supported_plug_mon_context)
+  then show ?thesis
+    using assms(3) by (rule pmatch_core_run_complete)
 qed
 
 end

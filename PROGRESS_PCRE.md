@@ -2,6 +2,30 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Core Values Through Monotone Contexts (2026-05-29)
+
+- Branch: `master`.
+- Files changed: `Pcre_Values.thy`, `PROGRESS_PCRE.md`.
+- New checked predicate:
+  - `pmonctx_core_supported`
+- New checked lemmas:
+  - `pcore_supported_plug_mon_context`
+  - `pmatch_mon_context_core_run_complete`
+- Statement summary:
+  - a monotone context whose fixed subpatterns are in the core fragment
+    preserves `pcore_supported` when a core-supported hole is plugged;
+  - every executable match of such a plugged core pattern has a structured
+    `pval_core_run` inhabitant.
+- Why this matters:
+  - this connects the new match-set/context infrastructure back to the
+    submatch-value inhabitation layer instead of leaving it as a pure set fact.
+- Verifier:
+  - `timeout 180s isabelle build -c -v -j 1 -o timeout=20 -d . PcrePOC` PASS,
+    with `PcrePOC` timing about 18.4 seconds elapsed.
+- Next smallest safe step:
+  - define repetition value runs for the quantifier fragment so the possessive
+    context theorem can produce structured `PRepVal` witnesses.
+
 ## Possessive Subset Through Monotone Contexts (2026-05-29)
 
 - Branch: `master`.
