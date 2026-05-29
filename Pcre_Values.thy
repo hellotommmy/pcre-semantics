@@ -244,6 +244,28 @@ text \<open>
   atomic groups, and lookaround are intentionally left for later relations.
 \<close>
 
+fun pcore_supported :: "pcre \<Rightarrow> bool"
+where
+  "pcore_supported PFail = True"
+| "pcore_supported PEps = True"
+| "pcore_supported (PChar c) = True"
+| "pcore_supported (PClass C) = True"
+| "pcore_supported (PDot excluded) = True"
+| "pcore_supported (PSeq r1 r2) = (pcore_supported r1 \<and> pcore_supported r2)"
+| "pcore_supported (PAlt r1 r2) = (pcore_supported r1 \<and> pcore_supported r2)"
+| "pcore_supported (PQuant q lo hi r) = False"
+| "pcore_supported (PCapture n r) = pcore_supported r"
+| "pcore_supported (PBackref n) = True"
+| "pcore_supported (PAtomic r) = False"
+| "pcore_supported (PLook positive r) = False"
+| "pcore_supported (PLookBehind positive r) = False"
+| "pcore_supported (PCond n yes no) = (pcore_supported yes \<and> pcore_supported no)"
+| "pcore_supported (PWordBoundary W positive) = True"
+| "pcore_supported (PLineStart NL) = True"
+| "pcore_supported (PLineEnd NL) = True"
+| "pcore_supported PStart = True"
+| "pcore_supported PEnd = True"
+
 inductive pval_core_trace :: "pcre \<Rightarrow> pstate \<Rightarrow> pval \<Rightarrow> pstate \<Rightarrow> bool"
 where
   Core_Eps:
@@ -661,6 +683,287 @@ next
 next
   case (CoreRun_End fuel l caps)
   then show ?case by simp
+qed
+
+lemma pmatch_core_run_complete:
+  assumes "pcore_supported r"
+    and "out \<in> set (pmatch fuel r st)"
+  shows "\<exists>v. pval_core_run fuel r st v out"
+  using assms
+proof (induct fuel arbitrary: r st out)
+  case 0
+  then show ?case by simp
+next
+  case (Suc fuel)
+  then have supported: "pcore_supported r"
+    and out: "out \<in> set (pmatch (Suc fuel) r st)"
+    by simp_all
+  show ?case
+  proof (cases r)
+    case PFail
+    then show ?thesis using out by simp
+  next
+    case PEps
+    then show ?thesis
+      using out CoreRun_Eps by auto
+  next
+    case (PChar c)
+    then show ?thesis
+    proof (cases st)
+      case (PState l s caps)
+      show ?thesis
+      proof (cases s)
+        case Nil
+        then show ?thesis using out PChar PState by simp
+      next
+        case (Cons d rest)
+        then have c_eq: "c = d" and out_eq: "out = PState (l @ [d]) rest caps"
+          using out PChar PState by auto
+        show ?thesis
+        proof (intro exI)
+          show "pval_core_run (Suc fuel) r st (PCharVal d) out"
+            unfolding PChar PState Cons c_eq out_eq
+            by (rule CoreRun_Char)
+        qed
+      qed
+    qed
+  next
+    case (PClass C)
+    then show ?thesis
+    proof (cases st)
+      case (PState l s caps)
+      show ?thesis
+      proof (cases s)
+        case Nil
+        then show ?thesis using out PClass PState by simp
+      next
+        case (Cons c rest)
+        then have in_C: "c \<in> C" and out_eq: "out = PState (l @ [c]) rest caps"
+          using out PClass PState by auto
+        show ?thesis
+        proof (intro exI)
+          show "pval_core_run (Suc fuel) r st (PClassVal c) out"
+            unfolding PClass PState Cons out_eq
+            using in_C by (rule CoreRun_Class)
+        qed
+      qed
+    qed
+  next
+    case (PDot excluded)
+    then show ?thesis
+    proof (cases st)
+      case (PState l s caps)
+      show ?thesis
+      proof (cases s)
+        case Nil
+        then show ?thesis using out PDot PState by simp
+      next
+        case (Cons c rest)
+        then have not_excluded: "c \<notin> excluded"
+          and out_eq: "out = PState (l @ [c]) rest caps"
+          using out PDot PState by auto
+        show ?thesis
+        proof (intro exI)
+          show "pval_core_run (Suc fuel) r st (PDotVal c) out"
+            unfolding PDot PState Cons out_eq
+            using not_excluded by (rule CoreRun_Dot)
+        qed
+      qed
+    qed
+  next
+    case (PSeq r1 r2)
+    then have r1: "pcore_supported r1" and r2: "pcore_supported r2"
+      using supported by simp_all
+    from out PSeq obtain mid where
+      mid: "mid \<in> set (pmatch fuel r1 st)"
+      and out2: "out \<in> set (pmatch fuel r2 mid)"
+      by auto
+    obtain v1 where v1: "pval_core_run fuel r1 st v1 mid"
+      using Suc.hyps[OF r1 mid] by blast
+    obtain v2 where v2: "pval_core_run fuel r2 mid v2 out"
+      using Suc.hyps[OF r2 out2] by blast
+    then show ?thesis
+      using CoreRun_Seq[OF v1 v2] PSeq by blast
+  next
+    case (PAlt r1 r2)
+    then have r1: "pcore_supported r1" and r2: "pcore_supported r2"
+      using supported by simp_all
+    show ?thesis
+    proof (cases "out \<in> set (pmatch fuel r1 st)")
+      case True
+      then obtain v where "pval_core_run fuel r1 st v out"
+        using Suc.hyps[OF r1] by blast
+      then show ?thesis
+        using PAlt CoreRun_Alt_Left by blast
+    next
+      case False
+      then have "out \<in> set (pmatch fuel r2 st)"
+        using out PAlt by simp
+      then obtain v where "pval_core_run fuel r2 st v out"
+        using Suc.hyps[OF r2] by blast
+      then show ?thesis
+        using PAlt CoreRun_Alt_Right by blast
+    qed
+  next
+    case (PQuant q lo hi r)
+    then show ?thesis using supported by simp
+  next
+    case (PCapture n r)
+    then show ?thesis
+    proof (cases st)
+      case (PState l s caps)
+      from supported PCapture have rs: "pcore_supported r"
+        by simp
+      from out PCapture PState obtain mid where
+        mid: "mid \<in> set (pmatch fuel r (PState l s caps))"
+        and out_eq: "out = capture_update n l mid"
+        by auto
+      obtain l' s' caps' where mid_eq: "mid = PState l' s' caps'"
+        by (cases mid)
+      obtain v where v: "pval_core_run fuel r (PState l s caps) v (PState l' s' caps')"
+        using Suc.hyps[OF rs] mid mid_eq by blast
+      have explains: "pval_explains_state (PState l s caps) v (PState l' s' caps')"
+        using pval_core_run_explains_state[OF v] .
+      then have cap_text: "drop (length l) l' = pflat v"
+        by (simp add: pval_explains_state_def)
+      have out_shape: "out = PState l' s' (caps'(n := Some (pflat v)))"
+        using out_eq mid_eq cap_text by (simp add: capture_update_def)
+      show ?thesis
+        using CoreRun_Capture[OF v, of n] out_shape PCapture PState by blast
+    qed
+  next
+    case (PBackref n)
+    then show ?thesis
+    proof (cases st)
+      case (PState l s caps)
+      show ?thesis
+      proof (cases "caps n")
+        case None
+        then show ?thesis using out PBackref PState by simp
+      next
+        case (Some w)
+        then have sw: "starts_with w s"
+          and out_eq: "out = PState (l @ w) (drop (length w) s) caps"
+          using out PBackref PState by auto
+        show ?thesis
+        proof (intro exI)
+          show "pval_core_run (Suc fuel) r st (PBackrefVal n w) out"
+            unfolding PBackref PState out_eq
+            using Some sw by (rule CoreRun_Backref)
+        qed
+      qed
+    qed
+  next
+    case (PAtomic r)
+    then show ?thesis using supported by simp
+  next
+    case (PLook positive r)
+    then show ?thesis using supported by simp
+  next
+    case (PLookBehind positive r)
+    then show ?thesis using supported by simp
+  next
+    case (PCond n yes no)
+    then have yes: "pcore_supported yes" and no: "pcore_supported no"
+      using supported by simp_all
+    show ?thesis
+    proof (cases st)
+      case (PState l s caps)
+      show ?thesis
+      proof (cases "caps n")
+        case None
+        then have "out \<in> set (pmatch fuel no (PState l s caps))"
+          using out PCond PState by simp
+        then obtain v where "pval_core_run fuel no (PState l s caps) v out"
+          using Suc.hyps[OF no] by blast
+        then show ?thesis
+          using None PCond PState CoreRun_Cond_No by blast
+      next
+        case (Some w)
+        then have "out \<in> set (pmatch fuel yes (PState l s caps))"
+          using out PCond PState by simp
+        then obtain v where "pval_core_run fuel yes (PState l s caps) v out"
+          using Suc.hyps[OF yes] by blast
+        then show ?thesis
+          using Some PCond PState CoreRun_Cond_Yes by blast
+      qed
+    qed
+  next
+    case (PWordBoundary W positive)
+    then show ?thesis
+    proof (cases st)
+      case (PState l s caps)
+      then have wb: "word_boundary W l s = positive"
+        and out_eq: "out = PState l s caps"
+        using out PWordBoundary by auto
+      show ?thesis
+      proof (intro exI)
+        show "pval_core_run (Suc fuel) r st PAssertVal out"
+          unfolding PWordBoundary PState out_eq
+          using wb by (rule CoreRun_WordBoundary)
+      qed
+    qed
+  next
+    case (PLineStart NL)
+    then show ?thesis
+    proof (cases st)
+      case (PState l s caps)
+      then have ls: "line_start NL l"
+        and out_eq: "out = PState l s caps"
+        using out PLineStart by auto
+      show ?thesis
+      proof (intro exI)
+        show "pval_core_run (Suc fuel) r st PAssertVal out"
+          unfolding PLineStart PState out_eq
+          using ls by (rule CoreRun_LineStart)
+      qed
+    qed
+  next
+    case (PLineEnd NL)
+    then show ?thesis
+    proof (cases st)
+      case (PState l s caps)
+      then have le: "line_end NL s"
+        and out_eq: "out = PState l s caps"
+        using out PLineEnd by auto
+      show ?thesis
+      proof (intro exI)
+        show "pval_core_run (Suc fuel) r st PAssertVal out"
+          unfolding PLineEnd PState out_eq
+          using le by (rule CoreRun_LineEnd)
+      qed
+    qed
+  next
+    case PStart
+    then show ?thesis
+    proof (cases st)
+      case (PState l s caps)
+      then have l_nil: "l = []"
+        and out_eq: "out = PState l s caps"
+        using out PStart by auto
+      show ?thesis
+      proof (intro exI)
+        show "pval_core_run (Suc fuel) r st PAssertVal out"
+          unfolding PStart PState out_eq l_nil
+          by (rule CoreRun_Start)
+      qed
+    qed
+  next
+    case PEnd
+    then show ?thesis
+    proof (cases st)
+      case (PState l s caps)
+      then have s_nil: "s = []"
+        and out_eq: "out = PState l s caps"
+        using out PEnd by auto
+      show ?thesis
+      proof (intro exI)
+        show "pval_core_run (Suc fuel) r st PAssertVal out"
+          unfolding PEnd PState out_eq s_nil
+          by (rule CoreRun_End)
+      qed
+    qed
+  qed
 qed
 
 end

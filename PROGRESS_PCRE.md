@@ -2,6 +2,32 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Core Executable Completeness Bridge (2026-05-29)
+
+- Branch: `master`.
+- Files changed: `Pcre_Values.thy`, `PROGRESS_PCRE.md`.
+- New checked predicate:
+  - `pcore_supported`, a syntactic boundary for the executable core fragment
+    covered by the current value relation. It excludes ordered repetition,
+    atomic groups, and lookaround until their value/ordering semantics are
+    stated explicitly.
+- New checked lemma:
+  - `pmatch_core_run_complete`
+- Statement summary:
+  - for every `pcore_supported r`, if the executable matcher returns an output
+    state `out \<in> set (pmatch fuel r st)`, then there exists a structured value
+    `v` such that `pval_core_run fuel r st v out`.
+  - Together with `pval_core_run_sound_pmatch`, this gives a checked
+    correspondence between executable core matches and structured submatch
+    value inhabitants.
+- Verifier:
+  - `timeout 180s isabelle build -v -j 1 -o timeout=20 -d . PcrePOC` PASS,
+    with `PcrePOC` timing about 16.5 seconds elapsed.
+- Next smallest safe step:
+  - decide the next relation boundary for ordered quantifiers and atomic
+    commitment, or keep reducing the remaining 10-second-check bottleneck in
+    `Pcre_POC.thy`.
+
 ## Fuelled Core Value Bridge (2026-05-29)
 
 - Branch: `master`.
