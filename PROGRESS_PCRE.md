@@ -150,6 +150,9 @@ Last updated: 2026-05-29 (standalone repo created)
   - `pval_ordered_run_explains_state`
   - `pval_ordered_run_consumes_prefix`
   - `pval_ordered_run_spine`
+  - `pval_ordered_run_left`
+  - `pval_ordered_run_right`
+  - `pval_ordered_run_caps`
 - Statement summary:
   - every ordered value run explains its state transition via
     `pval_explains_state`;

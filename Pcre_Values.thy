@@ -1248,6 +1248,24 @@ lemma pval_ordered_run_spine:
   using pval_explains_state_spine[
     OF pval_ordered_run_explains_state[OF assms]] .
 
+lemma pval_ordered_run_left:
+  assumes "pval_ordered_run fuel r st v out"
+  shows "pleft out = pleft st @ pflat v"
+  using pval_ordered_run_explains_state[OF assms]
+  by (simp add: pval_explains_state_def)
+
+lemma pval_ordered_run_right:
+  assumes "pval_ordered_run fuel r st v out"
+  shows "pright st = pflat v @ pright out"
+  using pval_ordered_run_explains_state[OF assms]
+  by (simp add: pval_explains_state_def)
+
+lemma pval_ordered_run_caps:
+  assumes "pval_ordered_run fuel r st v out"
+  shows "pcaps out = pcaps_after v (pcaps st)"
+  using pval_ordered_run_explains_state[OF assms]
+  by (simp add: pval_explains_state_def)
+
 lemma pmatch_ordered_value_complete:
   assumes "pordered_supported r"
     and "out \<in> set (pmatch fuel r st)"
