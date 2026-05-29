@@ -2,6 +2,29 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Atomic-Saturated Ordered Support (2026-05-29)
+
+- Branch: `master`.
+- Files changed: `Pcre_Values.thy`, `PROGRESS_PCRE.md`.
+- New checked predicate:
+  - `pordered_supported_atomic`
+- New checked lemma:
+  - `pmatch_ordered_value_complete_atomic`
+- Statement summary:
+  - the supported ordered-value fragment can now be closed under nested atomic
+    wrappers;
+  - every executable match in this atomic-saturated fragment has a structured
+    `pval_ordered_run` witness.
+- Why this matters:
+  - this connects atomic first-result commitment to the value-inhabitation
+    story without pretending atomic is monotone.
+- Verifier:
+  - `timeout 180s isabelle build -c -v -j 1 -o timeout=20 -d . PcrePOC` PASS,
+    with `PcrePOC` timing about 18.3 seconds elapsed.
+- Next smallest safe step:
+  - add an iff theorem for `pordered_supported_atomic`, or begin greedy/lazy
+    ordered repetition values.
+
 ## Ordered Value Iff Bridge (2026-05-29)
 
 - Branch: `master`.

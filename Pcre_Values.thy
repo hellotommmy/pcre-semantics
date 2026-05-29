@@ -1173,6 +1173,17 @@ where
     pcore_supported r \<or>
     (\<exists>hi body. r = PQuant Possessive 0 hi body \<and> pcore_supported body)"
 
+inductive pordered_supported_atomic :: "pcre \<Rightarrow> bool"
+where
+  POrd_Core:
+    "pcore_supported r \<Longrightarrow> pordered_supported_atomic r"
+| POrd_Possessive_Zero:
+    "pcore_supported body \<Longrightarrow>
+     pordered_supported_atomic (PQuant Possessive 0 hi body)"
+| POrd_Atomic:
+    "pordered_supported_atomic r \<Longrightarrow>
+     pordered_supported_atomic (PAtomic r)"
+
 lemma pval_ordered_run_sound_pmatch:
   assumes "pval_ordered_run fuel r st v out"
   shows "out \<in> set (pmatch fuel r st)"
@@ -1332,6 +1343,72 @@ proof -
   proof (intro exI[of _ "PAtomicVal v"])
     show "pval_ordered_run (Suc fuel) (PAtomic r) st (PAtomicVal v) out"
       using head run by (rule Ordered_Atomic)
+  qed
+qed
+
+lemma pmatch_ordered_value_complete_atomic:
+  assumes "pordered_supported_atomic r"
+    and "out \<in> set (pmatch fuel r st)"
+  shows "\<exists>v. pval_ordered_run fuel r st v out"
+  using assms
+proof (induct arbitrary: fuel st out rule: pordered_supported_atomic.induct)
+  case (POrd_Core r)
+  from pmatch_core_run_complete[OF POrd_Core.hyps POrd_Core.prems]
+  obtain v where run: "pval_core_run fuel r st v out"
+    ..
+  show ?case
+  proof (intro exI[of _ v])
+    show "pval_ordered_run fuel r st v out"
+      using run by (rule Ordered_Core)
+  qed
+next
+  case (POrd_Possessive_Zero body hi)
+  show ?case
+  proof (cases fuel)
+    case 0
+    then show ?thesis using POrd_Possessive_Zero.prems by simp
+  next
+    case (Suc fuel')
+    then have out_quant:
+      "out \<in> set (pmatch (Suc fuel') (PQuant Possessive 0 hi body) st)"
+      using POrd_Possessive_Zero.prems by simp
+    from pmatch_possessive_zero_core_value_complete[
+      OF POrd_Possessive_Zero.hyps out_quant]
+    obtain vs where both:
+      "pval_possessive_zero_run fuel' hi body st vs out \<and>
+       pval_explains_state st (PRepVal Possessive vs) out"
+      ..
+    then have run: "pval_possessive_zero_run fuel' hi body st vs out"
+      by simp
+    show ?thesis
+    proof (intro exI[of _ "PRepVal Possessive vs"])
+      show "pval_ordered_run fuel (PQuant Possessive 0 hi body) st
+        (PRepVal Possessive vs) out"
+        unfolding Suc using run by (rule Ordered_Possessive_Zero)
+    qed
+  qed
+next
+  case (POrd_Atomic r)
+  show ?case
+  proof (cases fuel)
+    case 0
+    then show ?thesis using POrd_Atomic.prems by simp
+  next
+    case (Suc fuel')
+    have first_mem: "out \<in> set (first_only (pmatch fuel' r st))"
+      using POrd_Atomic.prems Suc by simp
+    have inner_mem: "out \<in> set (pmatch fuel' r st)"
+      using first_only_subset[OF first_mem] .
+    obtain rest where head: "pmatch fuel' r st = out # rest"
+      using first_only_member_head[OF first_mem] ..
+    from POrd_Atomic.hyps(2)[OF inner_mem]
+    obtain v where run: "pval_ordered_run fuel' r st v out"
+      ..
+    show ?thesis
+    proof (intro exI[of _ "PAtomicVal v"])
+      show "pval_ordered_run fuel (PAtomic r) st (PAtomicVal v) out"
+        unfolding Suc using head run by (rule Ordered_Atomic)
+    qed
   qed
 qed
 
