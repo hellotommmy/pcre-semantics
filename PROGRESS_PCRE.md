@@ -2,6 +2,28 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Proof-Time Recovery Plan (2026-05-29)
+
+- Branch: `master`.
+- Files changed:
+  - `agent_hunt_pipeline/projects/pcre-poc/PROOF_TIME_RECOVERY_PLAN.md`
+  - `PROGRESS_PCRE.md`
+- Added a concrete split plan before further value-relation growth:
+  - `Pcre_Value_Base.thy`;
+  - `Pcre_Core_Values.thy`;
+  - `Pcre_Quant_Values.thy`;
+  - `Pcre_Ordered_Values.thy`.
+- Rationale:
+  - `Pcre_Values.thy` is now about 1,584 lines;
+  - `-o timeout=20` passes but `-o timeout=18` fails;
+  - adding greedy/lazy value runs directly to the hot theory would risk
+    breaking the fast feedback loop.
+- Immediate formal candidate after the split:
+  - `pval_backtracking_zero_run` for `Greedy` and `Lazy`, restricted to
+    `pcore_supported` repeated bodies.
+- Verification impact:
+  - documentation-only change after the latest successful Isabelle checks.
+
 ## Fullmatch Ordered Value Bridge (2026-05-29)
 
 - Branch: `master`.
