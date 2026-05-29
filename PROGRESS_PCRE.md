@@ -2,6 +2,31 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Atomic Ordered Value First-Result Facts (2026-05-29)
+
+- Branch: `master`.
+- Files changed:
+  - `Pcre_Values.thy`
+  - `agent_hunt_pipeline/projects/pcre-poc/CHECKED_ARTIFACT_INDEX.md`
+  - `PROGRESS_PCRE.md`
+- New checked lemmas:
+  - `pval_ordered_atomic_first_result`
+  - `pval_ordered_atomic_output_unique`
+- Statement summary:
+  - every ordered value run for `PAtomic r` corresponds to the first result of
+    the wrapped executable matcher;
+  - any two ordered atomic value runs from the same state have the same output
+    state.
+- Why this matters:
+  - this lifts atomic first-result commitment from state traces to the current
+    ordered submatch-value layer without adding a new expensive recursion.
+- Verifier:
+  - `timeout 180s isabelle build -c -v -j 1 -o timeout=20 -d . PcrePOC` PASS,
+    with `PcrePOC` timing about 18.3 seconds elapsed.
+- Next smallest safe step:
+  - recover proof-time headroom before adding greedy/lazy ordered repetition
+    value runs, or split those runs into a separate focused theory/session.
+
 ## Checked Artifact Index (2026-05-29)
 
 - Branch: `master`.

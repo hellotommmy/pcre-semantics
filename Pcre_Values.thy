@@ -1499,4 +1499,29 @@ next
     using pval_ordered_run_sound_pmatch[OF run] .
 qed
 
+lemma pval_ordered_atomic_first_result:
+  assumes "pval_ordered_run (Suc fuel) (PAtomic r) st v out"
+  shows "\<exists>rest. pmatch fuel r st = out # rest"
+proof -
+  have first_mem: "out \<in> set (first_only (pmatch fuel r st))"
+    using pval_ordered_run_sound_pmatch[OF assms] by simp
+  show ?thesis
+    using first_only_member_head[OF first_mem] .
+qed
+
+lemma pval_ordered_atomic_output_unique:
+  assumes "pval_ordered_run (Suc fuel) (PAtomic r) st v1 out1"
+    and "pval_ordered_run (Suc fuel) (PAtomic r) st v2 out2"
+  shows "out1 = out2"
+proof -
+  have out1: "out1 \<in> set (pmatch (Suc fuel) (PAtomic r) st)"
+    using pval_ordered_run_sound_pmatch[OF assms(1)] .
+  have out2: "out2 \<in> set (pmatch (Suc fuel) (PAtomic r) st)"
+    using pval_ordered_run_sound_pmatch[OF assms(2)] .
+  have len: "length (pmatch (Suc fuel) (PAtomic r) st) \<le> 1"
+    using first_only_length_le_one by simp
+  show ?thesis
+    using length_le_one_set_unique[OF len out1 out2] .
+qed
+
 end

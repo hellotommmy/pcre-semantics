@@ -83,8 +83,12 @@ possessive zero-phase quantifiers with core bodies, and nested atomic wrappers.
 - `ptrace_atomic_first_result`
 - `ptrace_atomic_unique`
 - `pmatch_atomic_ordered_value_complete`
+- `pval_ordered_atomic_first_result`
+- `pval_ordered_atomic_output_unique`
 
-Use: PCRE-003 infrastructure. Capture-specific atomic interaction remains open.
+Use: PCRE-003 infrastructure. The ordered-value facts lift first-result
+commitment and output uniqueness to atomic value runs. Capture-specific atomic
+interaction remains open.
 
 ## Lookaround Fidelity Gap
 

@@ -355,8 +355,22 @@ ptrace_atomic_unique:
   out1 = out2
 ```
 
-The missing value-layer step is to pair the first output state with the first
-structured value for `r`, preserving capture updates.
+Checked value-layer infrastructure now present:
+
+```isabelle
+pval_ordered_atomic_first_result:
+  pval_ordered_run (Suc fuel) (PAtomic r) st v out ==>
+  exists rest. pmatch fuel r st = out # rest
+
+pval_ordered_atomic_output_unique:
+  pval_ordered_run (Suc fuel) (PAtomic r) st v1 out1 ==>
+  pval_ordered_run (Suc fuel) (PAtomic r) st v2 out2 ==>
+  out1 = out2
+```
+
+The remaining value-layer step is stricter: pair the first output state with
+the first structured value for `r`, preserving capture updates and explaining
+which inner value was committed.
 
 Candidate F: positive-lookaround capture fidelity gap.
 
