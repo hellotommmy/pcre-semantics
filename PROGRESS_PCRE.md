@@ -2,6 +2,37 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Possessive Subset Through Monotone Contexts (2026-05-29)
+
+- Branch: `master`.
+- Files changed: `Pcre_POC.thy`, `PROGRESS_PCRE.md`.
+- New checked definitions:
+  - `pmonctx`
+  - `plug_mon_context`
+- New checked lemmas:
+  - `set_map_mono`
+  - `set_append_left_mono`
+  - `set_append_right_mono`
+  - `pmatch_mon_context_mono`
+  - `pmatch_mon_context_possessive_quant_subset_greedy`
+  - `pcre_fullmatch_language_mon_context_possessive_quant_subset_greedy`
+- Statement summary:
+  - matcher-output subset relations are preserved by the explicitly monotone
+    context fragment: sequence on either side, alternation on either side, and
+    capture wrapping;
+  - therefore possessive quantifier fullmatch languages are subsets of greedy
+    quantifier fullmatch languages under any such context.
+- Boundary:
+  - the context datatype deliberately excludes atomic groups, lookaround,
+    nested quantifier contexts, and conditionals, where monotonicity needs
+    separate ordered or truth-sensitive hypotheses.
+- Verifier:
+  - `timeout 180s isabelle build -c -v -j 1 -o timeout=20 -d . PcrePOC` PASS,
+    with `PcrePOC` timing about 17.9 seconds elapsed.
+- Next smallest safe step:
+  - connect `pmonctx` with structured values, or prove a strictness sanity
+    corollary for the canonical possessive/greedy pattern.
+
 ## Possessive Subset Through Right Contexts (2026-05-29)
 
 - Branch: `master`.

@@ -134,11 +134,18 @@ pcre_fullmatch_language_right_context_possessive_quant_subset_greedy:
   pcre_fullmatch_language fuel (plug_right_context C (PQuant Possessive lo hi r))
     subseteq
   pcre_fullmatch_language fuel (plug_right_context C (PQuant Greedy lo hi r))
+
+pcre_fullmatch_language_mon_context_possessive_quant_subset_greedy:
+  pcre_fullmatch_language fuel (plug_mon_context C (PQuant Possessive lo hi r))
+    subseteq
+  pcre_fullmatch_language fuel (plug_mon_context C (PQuant Greedy lo hi r))
 ```
 
 These are checked general match-set facts. They are useful PCRE-001/PCRE-002
-infrastructure. The right-context version is the preferred statement; it should
-still be paired with ordering/value theorems before claiming a full bounty.
+infrastructure. The monotone-context version is the preferred statement; it
+should still be paired with ordering/value theorems before claiming a full
+bounty. Its context boundary is intentional: atomic groups, lookaround,
+conditionals, and nested quantifier positions are not monotone for free.
 
 Candidate A: value soundness for the existing executable matcher.
 

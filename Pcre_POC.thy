@@ -59,6 +59,28 @@ where
 | "plug_right_context (PSeqRight C tail) r =
     PSeq (plug_right_context C r) tail"
 
+datatype pmonctx =
+  PMHole
+| PMSeqLeft pmonctx pcre
+| PMSeqRight pcre pmonctx
+| PMAltLeft pmonctx pcre
+| PMAltRight pcre pmonctx
+| PMCapture nat pmonctx
+
+fun plug_mon_context :: "pmonctx \<Rightarrow> pcre \<Rightarrow> pcre"
+where
+  "plug_mon_context PMHole r = r"
+| "plug_mon_context (PMSeqLeft C tail) r =
+    PSeq (plug_mon_context C r) tail"
+| "plug_mon_context (PMSeqRight prefix C) r =
+    PSeq prefix (plug_mon_context C r)"
+| "plug_mon_context (PMAltLeft C other) r =
+    PAlt (plug_mon_context C r) other"
+| "plug_mon_context (PMAltRight other C) r =
+    PAlt other (plug_mon_context C r)"
+| "plug_mon_context (PMCapture n C) r =
+    PCapture n (plug_mon_context C r)"
+
 definition empty_caps :: capenv
 where
   "empty_caps = (\<lambda>_. None)"
@@ -1094,6 +1116,21 @@ lemma set_concat_map_mono:
   shows "set (concat (map f xs)) \<subseteq> set (concat (map f ys))"
   using assms by (induct xs) auto
 
+lemma set_map_mono:
+  assumes "set xs \<subseteq> set ys"
+  shows "set (map f xs) \<subseteq> set (map f ys)"
+  using assms by auto
+
+lemma set_append_left_mono:
+  assumes "set xs \<subseteq> set ys"
+  shows "set (xs @ zs) \<subseteq> set (ys @ zs)"
+  using assms by auto
+
+lemma set_append_right_mono:
+  assumes "set xs \<subseteq> set ys"
+  shows "set (zs @ xs) \<subseteq> set (zs @ ys)"
+  using assms by auto
+
 lemma length_le_one_set_unique:
   assumes "length xs \<le> 1"
     and "x \<in> set xs"
@@ -1280,6 +1317,121 @@ lemma pmatch_right_context_possessive_quant_subset_greedy:
    set (pmatch fuel (plug_right_context C (PQuant Greedy lo hi r)) st)"
   by (rule pmatch_right_context_mono) (rule pmatch_possessive_quant_subset_greedy)
 
+lemma pmatch_mon_context_mono:
+  assumes step: "\<And>fuel st. set (pmatch fuel r st) \<subseteq> set (pmatch fuel r' st)"
+  shows "set (pmatch fuel (plug_mon_context C r) st) \<subseteq>
+   set (pmatch fuel (plug_mon_context C r') st)"
+proof (induct C arbitrary: fuel st)
+  case PMHole
+  show ?case using step by simp
+next
+  case (PMSeqLeft C tail)
+  show ?case
+  proof (cases fuel)
+    case 0
+    then show ?thesis by simp
+  next
+    case (Suc fuel')
+    have inner_subset:
+      "set (pmatch fuel' (plug_mon_context C r) st) \<subseteq>
+       set (pmatch fuel' (plug_mon_context C r') st)"
+      by (rule PMSeqLeft.hyps)
+    have "set (concat
+        (map (pmatch fuel' tail) (pmatch fuel' (plug_mon_context C r) st))) \<subseteq>
+      set (concat
+        (map (pmatch fuel' tail) (pmatch fuel' (plug_mon_context C r') st)))"
+      by (rule set_concat_map_mono) (rule inner_subset)
+    then show ?thesis
+      using Suc by simp
+  qed
+next
+  case (PMSeqRight prefix C)
+  show ?case
+  proof (cases fuel)
+    case 0
+    then show ?thesis by simp
+  next
+    case (Suc fuel')
+    have step_subset:
+      "\<And>mid. mid \<in> set (pmatch fuel' prefix st) \<Longrightarrow>
+        set (pmatch fuel' (plug_mon_context C r) mid) \<subseteq>
+        set (pmatch fuel' (plug_mon_context C r') mid)"
+      using PMSeqRight.hyps by simp
+    have "set (concat
+        (map (pmatch fuel' (plug_mon_context C r)) (pmatch fuel' prefix st))) \<subseteq>
+      set (concat
+        (map (pmatch fuel' (plug_mon_context C r')) (pmatch fuel' prefix st)))"
+      by (rule set_concat_map_subset) (rule step_subset)
+    then show ?thesis
+      using Suc by simp
+  qed
+next
+  case (PMAltLeft C other)
+  show ?case
+  proof (cases fuel)
+    case 0
+    then show ?thesis by simp
+  next
+    case (Suc fuel')
+    have inner_subset:
+      "set (pmatch fuel' (plug_mon_context C r) st) \<subseteq>
+       set (pmatch fuel' (plug_mon_context C r') st)"
+      by (rule PMAltLeft.hyps)
+    have "set (pmatch fuel' (plug_mon_context C r) st @ pmatch fuel' other st) \<subseteq>
+      set (pmatch fuel' (plug_mon_context C r') st @ pmatch fuel' other st)"
+      by (rule set_append_left_mono) (rule inner_subset)
+    then show ?thesis
+      using Suc by simp
+  qed
+next
+  case (PMAltRight other C)
+  show ?case
+  proof (cases fuel)
+    case 0
+    then show ?thesis by simp
+  next
+    case (Suc fuel')
+    have inner_subset:
+      "set (pmatch fuel' (plug_mon_context C r) st) \<subseteq>
+       set (pmatch fuel' (plug_mon_context C r') st)"
+      by (rule PMAltRight.hyps)
+    have "set (pmatch fuel' other st @ pmatch fuel' (plug_mon_context C r) st) \<subseteq>
+      set (pmatch fuel' other st @ pmatch fuel' (plug_mon_context C r') st)"
+      by (rule set_append_right_mono) (rule inner_subset)
+    then show ?thesis
+      using Suc by simp
+  qed
+next
+  case (PMCapture n C)
+  show ?case
+  proof (cases fuel)
+    case 0
+    then show ?thesis by simp
+  next
+    case (Suc fuel')
+    show ?thesis
+    proof (cases st)
+      case (PState l s caps)
+      have inner_subset:
+        "set (pmatch fuel' (plug_mon_context C r) (PState l s caps)) \<subseteq>
+         set (pmatch fuel' (plug_mon_context C r') (PState l s caps))"
+        by (rule PMCapture.hyps)
+      have "set (map (capture_update n l)
+          (pmatch fuel' (plug_mon_context C r) (PState l s caps))) \<subseteq>
+        set (map (capture_update n l)
+          (pmatch fuel' (plug_mon_context C r') (PState l s caps)))"
+        by (rule set_map_mono) (rule inner_subset)
+      then show ?thesis
+        using Suc PState by simp
+    qed
+  qed
+qed
+
+lemma pmatch_mon_context_possessive_quant_subset_greedy:
+  "set (pmatch fuel (plug_mon_context C (PQuant Possessive lo hi r)) st) \<subseteq>
+   set (pmatch fuel (plug_mon_context C (PQuant Greedy lo hi r)) st)"
+  by (rule pmatch_mon_context_mono) (rule pmatch_possessive_quant_subset_greedy)
+
 lemma pcre_fullmatch_language_possessive_quant_subset_greedy:
   "pcre_fullmatch_language fuel (PQuant Possessive lo hi r) \<subseteq>
    pcre_fullmatch_language fuel (PQuant Greedy lo hi r)"
@@ -1349,6 +1501,32 @@ proof
     using out(2) by (auto simp add: pcre_fullmatch_def)
   then show "s \<in>
     pcre_fullmatch_language fuel (plug_right_context C (PQuant Greedy lo hi r))"
+    by (simp add: pcre_fullmatch_language_def)
+qed
+
+lemma pcre_fullmatch_language_mon_context_possessive_quant_subset_greedy:
+  "pcre_fullmatch_language fuel (plug_mon_context C (PQuant Possessive lo hi r)) \<subseteq>
+   pcre_fullmatch_language fuel (plug_mon_context C (PQuant Greedy lo hi r))"
+proof
+  fix s
+  assume "s \<in>
+    pcre_fullmatch_language fuel (plug_mon_context C (PQuant Possessive lo hi r))"
+  then obtain out where out:
+    "out \<in> set (pmatch fuel (plug_mon_context C (PQuant Possessive lo hi r))
+      (PState [] s empty_caps))"
+    "pright out = []"
+    by (auto simp add: pcre_fullmatch_language_def pcre_fullmatch_def)
+  have "out \<in> set (pmatch fuel (plug_mon_context C (PQuant Greedy lo hi r))
+      (PState [] s empty_caps))"
+    using out(1)
+      pmatch_mon_context_possessive_quant_subset_greedy[
+        of fuel C lo hi r "PState [] s empty_caps"]
+    by (rule set_rev_mp)
+  then have "pcre_fullmatch fuel
+      (plug_mon_context C (PQuant Greedy lo hi r)) s"
+    using out(2) by (auto simp add: pcre_fullmatch_def)
+  then show "s \<in>
+    pcre_fullmatch_language fuel (plug_mon_context C (PQuant Greedy lo hi r))"
     by (simp add: pcre_fullmatch_language_def)
 qed
 
