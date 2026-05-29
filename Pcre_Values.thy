@@ -236,4 +236,177 @@ proof (rule pval_explains_stateI)
     by simp
 qed
 
+section \<open>Core value inhabitation\<close>
+
+text \<open>
+  This relation covers the core state-indexed fragment whose value behaviour is
+  not affected by ordered repetition or atomic commitment.  Quantifiers,
+  atomic groups, and lookaround are intentionally left for later relations.
+\<close>
+
+inductive pval_core_trace :: "pcre \<Rightarrow> pstate \<Rightarrow> pval \<Rightarrow> pstate \<Rightarrow> bool"
+where
+  Core_Eps:
+    "pval_core_trace PEps st PVoid st"
+| Core_Char:
+    "pval_core_trace
+      (PChar c)
+      (PState l (c # s) caps)
+      (PCharVal c)
+      (PState (l @ [c]) s caps)"
+| Core_Class:
+    "c \<in> C \<Longrightarrow>
+     pval_core_trace
+      (PClass C)
+      (PState l (c # s) caps)
+      (PClassVal c)
+      (PState (l @ [c]) s caps)"
+| Core_Dot:
+    "c \<notin> excluded \<Longrightarrow>
+     pval_core_trace
+      (PDot excluded)
+      (PState l (c # s) caps)
+      (PDotVal c)
+      (PState (l @ [c]) s caps)"
+| Core_Seq:
+    "\<lbrakk>pval_core_trace r1 st v1 mid;
+      pval_core_trace r2 mid v2 out\<rbrakk> \<Longrightarrow>
+     pval_core_trace (PSeq r1 r2) st (PSeqVal v1 v2) out"
+| Core_Alt_Left:
+    "pval_core_trace r1 st v out \<Longrightarrow>
+     pval_core_trace (PAlt r1 r2) st (PLeftVal v) out"
+| Core_Alt_Right:
+    "pval_core_trace r2 st v out \<Longrightarrow>
+     pval_core_trace (PAlt r1 r2) st (PRightVal v) out"
+| Core_Capture:
+    "pval_core_trace r (PState l s caps) v (PState l' s' caps') \<Longrightarrow>
+     pval_core_trace
+      (PCapture n r)
+      (PState l s caps)
+      (PCaptureVal n v)
+      (PState l' s' (caps'(n := Some (pflat v))))"
+| Core_Backref:
+    "\<lbrakk>caps n = Some w; starts_with w s\<rbrakk> \<Longrightarrow>
+     pval_core_trace
+      (PBackref n)
+      (PState l s caps)
+      (PBackrefVal n w)
+      (PState (l @ w) (drop (length w) s) caps)"
+| Core_Cond_Yes:
+    "\<lbrakk>caps n = Some w;
+      pval_core_trace yes (PState l s caps) v out\<rbrakk> \<Longrightarrow>
+     pval_core_trace (PCond n yes no) (PState l s caps) (PCondYesVal v) out"
+| Core_Cond_No:
+    "\<lbrakk>caps n = None;
+      pval_core_trace no (PState l s caps) v out\<rbrakk> \<Longrightarrow>
+     pval_core_trace (PCond n yes no) (PState l s caps) (PCondNoVal v) out"
+| Core_WordBoundary:
+    "word_boundary W l s = positive \<Longrightarrow>
+     pval_core_trace
+      (PWordBoundary W positive)
+      (PState l s caps)
+      PAssertVal
+      (PState l s caps)"
+| Core_LineStart:
+    "line_start NL l \<Longrightarrow>
+     pval_core_trace
+      (PLineStart NL)
+      (PState l s caps)
+      PAssertVal
+      (PState l s caps)"
+| Core_LineEnd:
+    "line_end NL s \<Longrightarrow>
+     pval_core_trace
+      (PLineEnd NL)
+      (PState l s caps)
+      PAssertVal
+      (PState l s caps)"
+| Core_Start:
+    "pval_core_trace
+      PStart
+      (PState [] s caps)
+      PAssertVal
+      (PState [] s caps)"
+| Core_End:
+    "pval_core_trace
+      PEnd
+      (PState l [] caps)
+      PAssertVal
+      (PState l [] caps)"
+
+lemma pval_core_trace_explains_state:
+  assumes "pval_core_trace r st v out"
+  shows "pval_explains_state st v out"
+  using assms
+proof induction
+  case (Core_Eps st)
+  then show ?case by simp
+next
+  case (Core_Char c l s caps)
+  then show ?case by (rule pval_explains_state_char)
+next
+  case (Core_Class c C l s caps)
+  show ?case by (rule pval_explains_state_class)
+next
+  case (Core_Dot c excluded l s caps)
+  show ?case by (rule pval_explains_state_dot)
+next
+  case (Core_Seq r1 st v1 mid r2 v2 out)
+  then show ?case
+    using pval_explains_state_seq by blast
+next
+  case (Core_Alt_Left r1 st v out r2)
+  then show ?case
+    using pval_explains_state_left by blast
+next
+  case (Core_Alt_Right r2 st v out r1)
+  then show ?case
+    using pval_explains_state_right by blast
+next
+  case (Core_Capture r l s caps v l' s' caps' n)
+  then show ?case
+    using pval_explains_state_capture by blast
+next
+  case (Core_Backref caps n w s l)
+  then show ?case
+    using pval_explains_state_backref by blast
+next
+  case (Core_Cond_Yes caps n w yes l s v out no)
+  then show ?case
+    using pval_explains_state_cond_yes by blast
+next
+  case (Core_Cond_No caps n no l s v out yes)
+  then show ?case
+    using pval_explains_state_cond_no by blast
+next
+  case (Core_WordBoundary W l s positive caps)
+  then show ?case by simp
+next
+  case (Core_LineStart NL l s caps)
+  then show ?case by simp
+next
+  case (Core_LineEnd NL s l caps)
+  then show ?case by simp
+next
+  case (Core_Start s caps)
+  then show ?case by simp
+next
+  case (Core_End l caps)
+  then show ?case by simp
+qed
+
+lemma pval_core_trace_consumes_prefix:
+  assumes "pval_core_trace r st v out"
+  shows "consumes_prefix st out"
+  using pval_core_trace_explains_state[OF assms]
+    pval_explains_state_consumes_prefix
+  by blast
+
+lemma pval_core_trace_spine:
+  assumes "pval_core_trace r st v out"
+  shows "pleft out @ pright out = pleft st @ pright st"
+  using pval_core_trace_explains_state[OF assms]
+    pval_explains_state_spine
+  by blast
+
 end

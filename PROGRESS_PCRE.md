@@ -2,6 +2,37 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Core Value Inhabitation Relation (2026-05-29)
+
+- Branch: `master`.
+- Files changed: `Pcre_Values.thy`, `PROGRESS_PCRE.md`.
+- New checked relation:
+  - `pval_core_trace`, a state-indexed value inhabitation relation for the
+    core fragment whose value behavior is not affected by ordered repetition
+    or atomic commitment.
+- Covered constructors:
+  - `PEps`, `PChar`, `PClass`, `PDot`, `PSeq`, `PAlt`, `PCapture`,
+    `PBackref`, `PCond`, `PWordBoundary`, `PLineStart`, `PLineEnd`,
+    `PStart`, and `PEnd`.
+- Deliberately not covered yet:
+  - `PQuant`, `PAtomic`, `PLook`, and `PLookBehind`, because they require
+    ordered first-result and assertion-capture fidelity decisions.
+- New checked lemmas:
+  - `pval_core_trace_explains_state`
+  - `pval_core_trace_consumes_prefix`
+  - `pval_core_trace_spine`
+- Verifier:
+  - `timeout 180s isabelle build -v -j 1 -o timeout=20 -d . PcrePOC` PASS,
+    with `PcrePOC` timing about 16 seconds elapsed.
+- Notes:
+  - This relation is the first formal answer to the missing submatch-value
+    inhabitation layer question. It is intentionally a fragment relation, not
+    a false full-PCRE relation.
+- Next smallest safe step:
+  - prove a soundness bridge from `pval_core_trace` to the executable matcher
+    for the same core fragment, likely by defining a syntactic predicate for
+    the supported core fragment first.
+
 ## Submatch Value Scaffold and Proof-Performance Rules (2026-05-29)
 
 - Branch: `master`.
