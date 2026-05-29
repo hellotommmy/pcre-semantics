@@ -2,6 +2,21 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Proof-Time Boundary Check (2026-05-29)
+
+- Branch: `master`.
+- Files changed: `PROGRESS_PCRE.md`.
+- Current cold-check boundary:
+  - `timeout 180s isabelle build -c -v -j 1 -o timeout=19 -d . PcrePOC`
+    PASS, with `PcrePOC` timing about 17.2 seconds elapsed.
+  - `timeout 180s isabelle build -c -v -j 1 -o timeout=18 -d . PcrePOC`
+    FAILS at the session timeout boundary.
+- Consequence:
+  - keep using `-o timeout=20` as the checked fast-loop target;
+  - do not add another large inductive relation to `Pcre_Values.thy` without
+    first recovering proof-time headroom or splitting the work into a more
+    focused theory/session.
+
 ## Atomic-Saturated Ordered Value Iff (2026-05-29)
 
 - Branch: `master`.
