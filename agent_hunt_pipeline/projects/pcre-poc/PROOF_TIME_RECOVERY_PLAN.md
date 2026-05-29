@@ -17,7 +17,8 @@ session PcrePOC = HOL +
 Current file sizes:
 
 - `Pcre_POC.thy`: about 2,481 lines.
-- `Pcre_Values.thy`: about 1,584 lines.
+- `Pcre_Values.thy`: about 1,527 lines after deferring the fullmatch/value
+  wrapper.
 
 Current checked boundary:
 
