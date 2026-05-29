@@ -2474,8 +2474,8 @@ where
 text \<open>
   The two definitions above pin down the ASTs for the canonical Perl/PCRE
   smoke test.  The exact checked theorem pair is tracked as PCRE-001; it should
-  be proved with a narrow proof script rather than whole-engine code
-  evaluation, because the full matcher contains lookbehind equations whose
-  generated-code path requires extra finite-enumeration infrastructure.
+  remain a sanity corollary of the general match-set, ordering, and
+  value-inhabitation facts rather than the main bounty artifact.
 \<close>
+
 end

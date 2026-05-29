@@ -42,32 +42,24 @@ Last updated: 2026-05-29 (standalone repo created)
 - Verification impact:
   - documentation-only change after the latest successful Isabelle checks.
 
-## Fullmatch Ordered Value Bridge (2026-05-29)
+## Fullmatch Ordered Value Bridge Deferred (2026-05-29)
 
 - Branch: `master`.
 - Files changed:
   - `Pcre_Values.thy`
   - `agent_hunt_pipeline/projects/pcre-poc/CHECKED_ARTIFACT_INDEX.md`
+  - `agent_hunt_pipeline/projects/pcre-poc/BOUNTY_THEOREM_CANDIDATES.md`
   - `PROGRESS_PCRE.md`
-- New checked theorems:
-  - `pcre_fullmatch_iff_ordered_value_explains_atomic`
-  - `pcre_fullmatch_language_iff_ordered_value_explains_atomic`
-- Statement summary:
-  - for the atomic-saturated supported fragment, a fullmatch success is
-    equivalent to existence of an ordered value run from the initial state that
-    explains the state transition and leaves no remaining input;
-  - the same equivalence is available at the `pcre_fullmatch_language` /
-    match-set level.
-- Why this matters:
-  - this connects the match-set view requested for PCRE-001/PCRE-002 to the
-    submatch-value inhabitation layer, instead of treating individual strings
-    as the main artifact.
-- Verifier:
-  - `timeout 180s isabelle build -c -v -j 1 -o timeout=20 -d . PcrePOC` PASS,
-    with `PcrePOC` timing about 18.8 seconds elapsed.
-- Next smallest safe step:
-  - stop adding further theorem weight to `Pcre_Values.thy` until the value
-    layer is split or proof-time headroom is recovered.
+- Change:
+  - removed the checked fullmatch/value wrapper from the hot theory after a
+    later clean `-o timeout=20` build hit the session timeout boundary.
+- Reason:
+  - the theorem shape is useful, but it is wrapper infrastructure rather than a
+    bounty-level semantic layer;
+  - preserving a stable fast-check loop is more important than keeping this
+    theorem in `Pcre_Values.thy` before the planned split.
+- Status:
+  - keep the statement as a candidate after proof-time headroom is recovered.
 
 ## General Theorem Candidate Triage (2026-05-29)
 

@@ -74,12 +74,9 @@ Use: possessive zero-phase repetition values for core-supported repeated bodies.
 - `pmatch_ordered_value_complete_atomic`
 - `pmatch_iff_ordered_value_run_atomic`
 - `pmatch_iff_ordered_value_explains_atomic`
-- `pcre_fullmatch_iff_ordered_value_explains_atomic`
-- `pcre_fullmatch_language_iff_ordered_value_explains_atomic`
 
 Use: current preferred value-inhabitation theorem family. Covers core,
-possessive zero-phase quantifiers with core bodies, nested atomic wrappers, and
-the corresponding fullmatch language view.
+possessive zero-phase quantifiers with core bodies, and nested atomic wrappers.
 
 ## Atomic Infrastructure
 

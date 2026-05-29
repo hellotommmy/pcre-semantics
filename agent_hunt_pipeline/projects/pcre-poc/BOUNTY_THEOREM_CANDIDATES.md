@@ -18,14 +18,12 @@ Checked relations and bridges:
 - `pordered_supported_atomic`
 - `pmatch_iff_ordered_value_explains`
 - `pmatch_iff_ordered_value_explains_atomic`
-- `pcre_fullmatch_iff_ordered_value_explains_atomic`
-- `pcre_fullmatch_language_iff_ordered_value_explains_atomic`
 
 Meaning: for the supported fragment, executable `pmatch` success is equivalent
 to existence of a structured ordered value run, and that value explains the
-state transition through consumed text and capture updates. At the fullmatch
-language level, membership is equivalent to such a value run ending with empty
-remaining input.
+state transition through consumed text and capture updates. A fullmatch-language
+bridge is a useful wrapper candidate, but it should wait until proof-time
+headroom is recovered.
 
 Boundary: this is not a full-PCRE value relation yet. Greedy/lazy ordered
 repetition values, positive-lookaround capture retention, and first inner
