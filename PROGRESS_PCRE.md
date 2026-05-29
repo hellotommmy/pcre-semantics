@@ -15,6 +15,8 @@ Last updated: 2026-05-29 (standalone repo created)
     theorems;
   - whole-engine `eval`/`normalization` is unsafe here because `pstate` carries
     the function-valued capture environment.
+- Also aligned the survey's PCRE2-missing transcript text with the updated
+  `run_engine_feedback.ps1` `-Pcre2TestPath` / `PCRE2TEST` hook.
 
 ## Proof Rule Update: Eval And Wrapper Boundaries (2026-05-29)
 

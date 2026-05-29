@@ -62,11 +62,13 @@ Observed output:
 possessive    no   expected=no
 greedy        yes  expected=yes
 == PCRE2 pcre2test oracle ==
-WARNING: pcre2test is not installed or not on PATH
+WARNING: pcre2test is not installed or not on PATH; pass -Pcre2TestPath or set PCRE2TEST before claiming PCRE2-specific fidelity.
 ```
 
 Perl is used only as a temporary compatibility oracle. A PCRE2 `pcre2test`
-transcript must be added before claiming PCRE2-specific fidelity.
+transcript must be added before claiming PCRE2-specific fidelity. Once a local
+binary is available, pass it to `tools/run_engine_feedback.ps1` with
+`-Pcre2TestPath` or set `PCRE2TEST`.
 
 ## Cross-Engine Notes
 
