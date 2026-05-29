@@ -135,6 +135,10 @@ lemma pcaps_after_rep_append [simp]:
     pcaps_after (PRepVal q ys) (pcaps_after (PRepVal q xs) caps)"
   by simp
 
+lemma pval_explains_state_rep_nil [simp]:
+  "pval_explains_state st (PRepVal q []) st"
+  by (simp add: pval_explains_state_def)
+
 lemma pval_explains_state_void [simp]:
   "pval_explains_state st PVoid st"
   by (simp add: pval_explains_state_def)
@@ -199,6 +203,19 @@ lemma pval_explains_state_atomic:
   assumes "pval_explains_state st v out"
   shows "pval_explains_state st (PAtomicVal v) out"
   using assms by (simp add: pval_explains_state_def)
+
+lemma pval_explains_state_rep_cons:
+  assumes head: "pval_explains_state st v mid"
+    and tail: "pval_explains_state mid (PRepVal q vs) out"
+  shows "pval_explains_state st (PRepVal q (v # vs)) out"
+proof (rule pval_explains_stateI)
+  show "pleft out = pleft st @ pflat (PRepVal q (v # vs))"
+    using head tail by (simp add: pval_explains_state_def append_assoc)
+  show "pright st = pflat (PRepVal q (v # vs)) @ pright out"
+    using head tail by (simp add: pval_explains_state_def append_assoc)
+  show "pcaps out = pcaps_after (PRepVal q (v # vs)) (pcaps st)"
+    using head tail by (simp add: pval_explains_state_def)
+qed
 
 lemma pval_explains_state_cond_yes:
   assumes "pval_explains_state st v out"
@@ -1085,6 +1102,24 @@ next
       qed
     qed
   qed
+qed
+
+lemma pval_possessive_zero_run_explains_state:
+  assumes "pval_possessive_zero_run fuel hi r st vs out"
+  shows "pval_explains_state st (PRepVal Possessive vs) out"
+  using assms
+proof induction
+  case (PossZero_Bound hi fuel r st)
+  then show ?case by simp
+next
+  case (PossZero_NoNext hi st fuel r)
+  then show ?case by simp
+next
+  case (PossZero_Take hi st fuel r mid rest v vs out)
+  have head: "pval_explains_state st v mid"
+    using pval_core_run_explains_state[OF PossZero_Take.hyps(3)] .
+  show ?case
+    using pval_explains_state_rep_cons[OF head PossZero_Take.IH] .
 qed
 
 end

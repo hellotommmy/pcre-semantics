@@ -2,6 +2,29 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Possessive Repetition Value Explanation (2026-05-29)
+
+- Branch: `master`.
+- Files changed: `Pcre_Values.thy`, `PROGRESS_PCRE.md`.
+- New checked lemmas:
+  - `pval_explains_state_rep_nil`
+  - `pval_explains_state_rep_cons`
+  - `pval_possessive_zero_run_explains_state`
+- Statement summary:
+  - concatenating the committed core repetition values into
+    `PRepVal Possessive vs` explains the same state transition as the
+    possessive zero-phase value run.
+- Why this matters:
+  - this connects repetition-specific value witnesses to the existing
+    `pval_explains_state` invariant, so captures and consumed text remain tied
+    to structured values.
+- Verifier:
+  - `timeout 180s isabelle build -c -v -j 1 -o timeout=20 -d . PcrePOC` PASS,
+    with `PcrePOC` timing about 18.3 seconds elapsed.
+- Next smallest safe step:
+  - package completeness and explanation into one theorem for
+    `qmatch Possessive 0`, or extend value runs to greedy/lazy ordering.
+
 ## Possessive Zero-Phase Value Runs (2026-05-29)
 
 - Branch: `master`.

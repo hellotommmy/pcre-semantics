@@ -244,10 +244,15 @@ qmatch_possessive_zero_core_value_complete:
   pcore_supported r ==>
   out in set (qmatch fuel Possessive 0 hi r st) ==>
   exists vs. pval_possessive_zero_run fuel hi r st vs out
+
+pval_possessive_zero_run_explains_state:
+  pval_possessive_zero_run fuel hi r st vs out ==>
+  pval_explains_state st (PRepVal Possessive vs) out
 ```
 
 This gives possessive zero-phase repetition a structured list-of-values
-inhabitation theorem for core-supported repeated bodies.
+inhabitation theorem for core-supported repeated bodies, and ties the list back
+to consumed text plus capture updates via `PRepVal`.
 
 Candidate E: atomic first-value commitment.
 
