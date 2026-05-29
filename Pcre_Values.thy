@@ -1122,4 +1122,32 @@ next
     using pval_explains_state_rep_cons[OF head PossZero_Take.IH] .
 qed
 
+lemma pval_possessive_zero_run_sound_pmatch_quant:
+  assumes "pval_possessive_zero_run fuel hi r st vs out"
+  shows "out \<in> set (pmatch (Suc fuel) (PQuant Possessive 0 hi r) st)"
+  using pval_possessive_zero_run_sound_qmatch[OF assms] by simp
+
+lemma pmatch_possessive_zero_core_value_complete:
+  assumes "pcore_supported r"
+    and "out \<in> set (pmatch (Suc fuel) (PQuant Possessive 0 hi r) st)"
+  shows "\<exists>vs.
+    pval_possessive_zero_run fuel hi r st vs out \<and>
+    pval_explains_state st (PRepVal Possessive vs) out"
+proof -
+  have out_q: "out \<in> set (qmatch fuel Possessive 0 hi r st)"
+    using assms(2) by simp
+  from qmatch_possessive_zero_core_value_complete[OF assms(1) out_q]
+  obtain vs where run: "pval_possessive_zero_run fuel hi r st vs out"
+    ..
+  have explains: "pval_explains_state st (PRepVal Possessive vs) out"
+    using pval_possessive_zero_run_explains_state[OF run] .
+  show ?thesis
+  proof (intro exI[of _ vs] conjI)
+    show "pval_possessive_zero_run fuel hi r st vs out"
+      using run .
+    show "pval_explains_state st (PRepVal Possessive vs) out"
+      using explains .
+  qed
+qed
+
 end

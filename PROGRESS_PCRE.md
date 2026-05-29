@@ -2,6 +2,29 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Possessive Quantifier Value Completeness (2026-05-29)
+
+- Branch: `master`.
+- Files changed: `Pcre_Values.thy`, `PROGRESS_PCRE.md`.
+- New checked lemmas:
+  - `pval_possessive_zero_run_sound_pmatch_quant`
+  - `pmatch_possessive_zero_core_value_complete`
+- Statement summary:
+  - value runs for possessive zero-phase repetition are sound for the actual
+    `PQuant Possessive 0 hi r` executable matcher;
+  - if the repeated body is core-supported, every executable match of that
+    quantifier has both a committed value-list witness and a
+    `PRepVal Possessive vs` state explanation.
+- Why this matters:
+  - this is the first quantifier-level submatch-value completeness theorem in
+    the PCRE track, and it is directly aligned with possessive commitment.
+- Verifier:
+  - `timeout 180s isabelle build -c -v -j 1 -o timeout=20 -d . PcrePOC` PASS,
+    with `PcrePOC` timing about 18.1 seconds elapsed.
+- Next smallest safe step:
+  - thread this quantifier-level value theorem through `pmonctx`, or add greedy
+    zero-phase value runs for direct comparison.
+
 ## Possessive Repetition Value Explanation (2026-05-29)
 
 - Branch: `master`.
