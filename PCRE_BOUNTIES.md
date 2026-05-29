@@ -115,7 +115,6 @@ checked theorem or definition, pass the verifier, and update the ledger.
 | Time UTC | Agent | Action | Task ID | Amount | Balance After | Notes |
 | --- | --- | --- | --- | ---: | ---: | --- |
 | 2026-05-29T00:00:00Z | Codex | RESET | PCRE-001 | 0 | 0 | Initialize PCRE board |
-| 2026-05-29T01:00:00Z | Codex | COLLECT | PCRE-001 | 2,000 | 2,000 | greedy_ababa_accepts and possessive_ababa_rejects checked |
 | 2026-05-29T00:00:00Z | Opus | RESET | PCRE-001 | 0 | 0 | Initialize PCRE board |
 | 2026-05-29T00:00:00Z | MergeSteward | RESET | PCRE-001 | 0 | 0 | Initialize PCRE board |
 | 2026-05-29T00:00:00Z | Alice | RESET | PCRE-001 | 0 | 0 | Initialize PCRE board |
