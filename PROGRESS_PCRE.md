@@ -2,6 +2,25 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Checked Artifact Index (2026-05-29)
+
+- Branch: `master`.
+- Files changed:
+  - `agent_hunt_pipeline/projects/pcre-poc/CHECKED_ARTIFACT_INDEX.md`
+  - `PROGRESS_PCRE.md`
+- Added a curated index of checked theorem/definition artifacts grouped by:
+  - match-set/context facts;
+  - possessive ordering facts;
+  - core value relation;
+  - possessive value relation;
+  - ordered value relation;
+  - atomic infrastructure;
+  - lookaround fidelity gap;
+  - external engine feedback.
+- Purpose:
+  - make bounty review easier without treating every infrastructure theorem as
+    a completed bounty.
+
 ## Engine Feedback Transcript Note (2026-05-29)
 
 - Branch: `master`.
