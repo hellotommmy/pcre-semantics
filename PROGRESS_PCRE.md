@@ -2,6 +2,32 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## General Theorem Candidate Triage (2026-05-29)
+
+- Branch: `master`.
+- Files changed:
+  - `agent_hunt_pipeline/projects/pcre-poc/BOUNTY_THEOREM_CANDIDATES.md`
+  - `PROGRESS_PCRE.md`
+- Added a research triage file separating:
+  - checked general infrastructure;
+  - likely bounty-worthy theorem shapes;
+  - example/wrapper facts that should not be claimed as bounties.
+- Main answer to the submatch-value relation question:
+  - yes, `pval_core_run`, `pval_possessive_zero_run`, and
+    `pval_ordered_run` now form a checked state-indexed value inhabitation
+    layer for the supported fragment;
+  - no, this is not yet a full-PCRE value relation because greedy/lazy ordered
+    repetition values, positive-lookaround capture retention, and first inner
+    atomic value selection remain open.
+- Proposed candidate directions:
+  - strict possessive fullmatch separation behind the `ababa` smoke test;
+  - ordered greedy/lazy value runs;
+  - atomic first inner value commitment;
+  - engine-result capture reconstruction;
+  - positive lookaround capture fidelity repair.
+- Verification impact:
+  - documentation-only change after the last successful Isabelle check.
+
 ## Atomic Ordered Value First-Result Facts (2026-05-29)
 
 - Branch: `master`.
