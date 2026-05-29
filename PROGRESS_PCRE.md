@@ -2,6 +2,36 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Possessive Fullmatch Language Subset (2026-05-29)
+
+- Branch: `master`.
+- Files changed: `Pcre_POC.thy`, `PROGRESS_PCRE.md`.
+- New checked definition:
+  - `pcre_fullmatch_language`, a fuelled fullmatch language/match-set view:
+    `{s. pcre_fullmatch fuel r s}`.
+- New checked lemmas:
+  - `set_concat_map_mono`
+  - `pmatch_possessive_quant_subset_greedy`
+  - `pmatch_seq_possessive_quant_subset_greedy`
+  - `pcre_fullmatch_language_possessive_quant_subset_greedy`
+  - `pcre_fullmatch_language_seq_possessive_quant_subset_greedy`
+- Statement summary:
+  - possessive quantifier outputs are included in greedy quantifier outputs;
+  - the same inclusion is preserved when the quantifier is followed by a right
+    sequence context;
+  - therefore the fuelled fullmatch language of the possessive form is a subset
+    of the corresponding greedy form.
+- Why this matters:
+  - this is the general match-set theorem the `ababa` smoke test should lean on,
+    instead of treating the individual smoke test as the main proof artifact.
+- Verifier:
+  - `timeout 180s isabelle build -c -v -j 1 -o timeout=20 -d . PcrePOC` PASS,
+    with `PcrePOC` timing about 16.2 seconds elapsed.
+- Next smallest safe step:
+  - extend the context theorem beyond one right `PSeq` frame, or add a negative
+    witness theorem showing strictness for the `ababa` pattern as a sanity
+    corollary only.
+
 ## Atomic First-Only Trace Bridge (2026-05-29)
 
 - Branch: `master`.

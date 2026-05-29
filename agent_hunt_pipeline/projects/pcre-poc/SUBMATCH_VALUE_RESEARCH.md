@@ -119,6 +119,22 @@ Good local helper facts:
 
 ## Bounty-Worthy Theorem Candidates
 
+Candidate 0: fullmatch language/match-set inclusion for possessive repetition.
+
+```isabelle
+pcre_fullmatch_language_possessive_quant_subset_greedy:
+  pcre_fullmatch_language fuel (PQuant Possessive lo hi r)
+    subseteq pcre_fullmatch_language fuel (PQuant Greedy lo hi r)
+
+pcre_fullmatch_language_seq_possessive_quant_subset_greedy:
+  pcre_fullmatch_language fuel (PSeq (PQuant Possessive lo hi r) tail)
+    subseteq pcre_fullmatch_language fuel (PSeq (PQuant Greedy lo hi r) tail)
+```
+
+These are checked general match-set facts. They are useful PCRE-001/PCRE-002
+infrastructure but should be paired with ordering/value theorems before claiming
+a full bounty.
+
 Candidate A: value soundness for the existing executable matcher.
 
 ```isabelle

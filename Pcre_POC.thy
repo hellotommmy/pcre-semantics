@@ -222,6 +222,10 @@ where
   "pcre_fullmatch fuel r s \<longleftrightarrow>
     (\<exists>st' \<in> set (pmatch fuel r (PState [] s empty_caps)). pright st' = [])"
 
+definition pcre_fullmatch_language :: "nat \<Rightarrow> pcre \<Rightarrow> string set"
+where
+  "pcre_fullmatch_language fuel r = {s. pcre_fullmatch fuel r s}"
+
 definition pcre_search_states :: "nat \<Rightarrow> pcre \<Rightarrow> string \<Rightarrow> pstate list"
 where
   "pcre_search_states fuel r s =
@@ -1075,6 +1079,11 @@ lemma set_concat_map_subset:
   shows "set (concat (map f xs)) \<subseteq> set (concat (map g xs))"
   using assms by (induct xs) auto
 
+lemma set_concat_map_mono:
+  assumes "set xs \<subseteq> set ys"
+  shows "set (concat (map f xs)) \<subseteq> set (concat (map f ys))"
+  using assms by (induct xs) auto
+
 lemma length_le_one_set_unique:
   assumes "length xs \<le> 1"
     and "x \<in> set xs"
@@ -1192,6 +1201,85 @@ next
       qed
     qed
   qed
+qed
+
+lemma pmatch_possessive_quant_subset_greedy:
+  "set (pmatch fuel (PQuant Possessive lo hi r) st) \<subseteq>
+   set (pmatch fuel (PQuant Greedy lo hi r) st)"
+proof (cases fuel)
+  case 0
+  then show ?thesis by simp
+next
+  case (Suc fuel')
+  then show ?thesis
+    using qmatch_possessive_subset_greedy[of fuel' lo hi r st] by simp
+qed
+
+lemma pmatch_seq_possessive_quant_subset_greedy:
+  "set (pmatch fuel (PSeq (PQuant Possessive lo hi r) tail) st) \<subseteq>
+   set (pmatch fuel (PSeq (PQuant Greedy lo hi r) tail) st)"
+proof (cases fuel)
+  case 0
+  then show ?thesis by simp
+next
+  case (Suc fuel')
+  have first_subset:
+    "set (pmatch fuel' (PQuant Possessive lo hi r) st) \<subseteq>
+     set (pmatch fuel' (PQuant Greedy lo hi r) st)"
+    by (rule pmatch_possessive_quant_subset_greedy)
+  have "set (concat
+      (map (pmatch fuel' tail) (pmatch fuel' (PQuant Possessive lo hi r) st))) \<subseteq>
+    set (concat
+      (map (pmatch fuel' tail) (pmatch fuel' (PQuant Greedy lo hi r) st)))"
+    by (rule set_concat_map_mono) (rule first_subset)
+  then show ?thesis
+    using Suc by simp
+qed
+
+lemma pcre_fullmatch_language_possessive_quant_subset_greedy:
+  "pcre_fullmatch_language fuel (PQuant Possessive lo hi r) \<subseteq>
+   pcre_fullmatch_language fuel (PQuant Greedy lo hi r)"
+proof
+  fix s
+  assume "s \<in> pcre_fullmatch_language fuel (PQuant Possessive lo hi r)"
+  then obtain out where out:
+    "out \<in> set (pmatch fuel (PQuant Possessive lo hi r)
+      (PState [] s empty_caps))"
+    "pright out = []"
+    by (auto simp add: pcre_fullmatch_language_def pcre_fullmatch_def)
+  have "out \<in> set (pmatch fuel (PQuant Greedy lo hi r)
+      (PState [] s empty_caps))"
+    using out(1)
+      pmatch_possessive_quant_subset_greedy[
+        of fuel lo hi r "PState [] s empty_caps"]
+    by (rule set_rev_mp)
+  then have "pcre_fullmatch fuel (PQuant Greedy lo hi r) s"
+    using out(2) by (auto simp add: pcre_fullmatch_def)
+  then show "s \<in> pcre_fullmatch_language fuel (PQuant Greedy lo hi r)"
+    by (simp add: pcre_fullmatch_language_def)
+qed
+
+lemma pcre_fullmatch_language_seq_possessive_quant_subset_greedy:
+  "pcre_fullmatch_language fuel (PSeq (PQuant Possessive lo hi r) tail) \<subseteq>
+   pcre_fullmatch_language fuel (PSeq (PQuant Greedy lo hi r) tail)"
+proof
+  fix s
+  assume "s \<in> pcre_fullmatch_language fuel (PSeq (PQuant Possessive lo hi r) tail)"
+  then obtain out where out:
+    "out \<in> set (pmatch fuel (PSeq (PQuant Possessive lo hi r) tail)
+      (PState [] s empty_caps))"
+    "pright out = []"
+    by (auto simp add: pcre_fullmatch_language_def pcre_fullmatch_def)
+  have "out \<in> set (pmatch fuel (PSeq (PQuant Greedy lo hi r) tail)
+      (PState [] s empty_caps))"
+    using out(1)
+      pmatch_seq_possessive_quant_subset_greedy[
+        of fuel lo hi r tail "PState [] s empty_caps"]
+    by (rule set_rev_mp)
+  then have "pcre_fullmatch fuel (PSeq (PQuant Greedy lo hi r) tail) s"
+    using out(2) by (auto simp add: pcre_fullmatch_def)
+  then show "s \<in> pcre_fullmatch_language fuel (PSeq (PQuant Greedy lo hi r) tail)"
+    by (simp add: pcre_fullmatch_language_def)
 qed
 
 lemma qmatch_linear_subset_possessive_zero:
