@@ -2,6 +2,28 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Ordered Value Iff Bridge (2026-05-29)
+
+- Branch: `master`.
+- Files changed: `Pcre_Values.thy`, `PROGRESS_PCRE.md`.
+- New checked theorems:
+  - `pmatch_iff_ordered_value_run`
+  - `pmatch_iff_ordered_value_explains`
+- Statement summary:
+  - for `pordered_supported` patterns, executable `pmatch` success is
+    equivalent to existence of a structured ordered value run;
+  - the stronger theorem packages the `pval_explains_state` invariant with the
+    value witness.
+- Why this matters:
+  - this is the clearest current answer to the submatch-value inhabitation
+    question for the supported PCRE fragment.
+- Verifier:
+  - `timeout 180s isabelle build -c -v -j 1 -o timeout=20 -d . PcrePOC` PASS,
+    with `PcrePOC` timing about 18.3 seconds elapsed.
+- Next smallest safe step:
+  - enlarge `pordered_supported` carefully, most likely with recursive atomic
+    support or greedy/lazy zero-phase value constructors.
+
 ## Lookaround Capture Fidelity Gap (2026-05-29)
 
 - Branch: `master`.

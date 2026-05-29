@@ -116,6 +116,12 @@ pmatch_atomic_ordered_value_complete:
   pordered_supported r ==>
   out in set (pmatch (Suc fuel) (PAtomic r) st) ==>
   exists v. pval_ordered_run (Suc fuel) (PAtomic r) st v out
+
+pmatch_iff_ordered_value_explains:
+  pordered_supported r ==>
+  (out in set (pmatch fuel r st)) =
+    (exists v. pval_ordered_run fuel r st v out /\
+      pval_explains_state st v out)
 ```
 
 ## Proof-Engineering Rules For This Layer
