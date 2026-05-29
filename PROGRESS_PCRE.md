@@ -2,6 +2,19 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Engine Feedback Transcript Note (2026-05-29)
+
+- Branch: `master`.
+- Files changed:
+  - `agent_hunt_pipeline/projects/pcre-poc/ENGINE_FEEDBACK.md`
+  - `PROGRESS_PCRE.md`
+- Recorded current real-engine feedback:
+  - Perl compatibility oracle: possessive `no`, greedy `yes`.
+  - PCRE2 `pcre2test`: not installed/on PATH.
+- Consequence:
+  - the formal work can cite Perl compatibility for the canonical smoke test,
+    but still must not claim PCRE2-specific fidelity.
+
 ## Proof-Time Boundary Check (2026-05-29)
 
 - Branch: `master`.
