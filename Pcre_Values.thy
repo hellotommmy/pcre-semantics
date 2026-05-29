@@ -1412,4 +1412,52 @@ next
   qed
 qed
 
+theorem pmatch_iff_ordered_value_run_atomic:
+  assumes "pordered_supported_atomic r"
+  shows "out \<in> set (pmatch fuel r st) \<longleftrightarrow>
+    (\<exists>v. pval_ordered_run fuel r st v out)"
+proof
+  assume out: "out \<in> set (pmatch fuel r st)"
+  show "\<exists>v. pval_ordered_run fuel r st v out"
+    by (rule pmatch_ordered_value_complete_atomic[OF assms out])
+next
+  assume "\<exists>v. pval_ordered_run fuel r st v out"
+  then obtain v where run: "pval_ordered_run fuel r st v out"
+    ..
+  show "out \<in> set (pmatch fuel r st)"
+    using pval_ordered_run_sound_pmatch[OF run] .
+qed
+
+theorem pmatch_iff_ordered_value_explains_atomic:
+  assumes "pordered_supported_atomic r"
+  shows "out \<in> set (pmatch fuel r st) \<longleftrightarrow>
+    (\<exists>v. pval_ordered_run fuel r st v out \<and>
+      pval_explains_state st v out)"
+proof
+  assume out: "out \<in> set (pmatch fuel r st)"
+  from pmatch_ordered_value_complete_atomic[OF assms out]
+  obtain v where run: "pval_ordered_run fuel r st v out"
+    ..
+  have explains: "pval_explains_state st v out"
+    using pval_ordered_run_explains_state[OF run] .
+  show "\<exists>v. pval_ordered_run fuel r st v out \<and>
+    pval_explains_state st v out"
+  proof (intro exI[of _ v] conjI)
+    show "pval_ordered_run fuel r st v out"
+      using run .
+    show "pval_explains_state st v out"
+      using explains .
+  qed
+next
+  assume "\<exists>v. pval_ordered_run fuel r st v out \<and>
+    pval_explains_state st v out"
+  then obtain v where both: "pval_ordered_run fuel r st v out \<and>
+    pval_explains_state st v out"
+    ..
+  then have run: "pval_ordered_run fuel r st v out"
+    by simp
+  show "out \<in> set (pmatch fuel r st)"
+    using pval_ordered_run_sound_pmatch[OF run] .
+qed
+
 end

@@ -2,6 +2,27 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Atomic-Saturated Ordered Value Iff (2026-05-29)
+
+- Branch: `master`.
+- Files changed: `Pcre_Values.thy`, `PROGRESS_PCRE.md`.
+- New checked theorems:
+  - `pmatch_iff_ordered_value_run_atomic`
+  - `pmatch_iff_ordered_value_explains_atomic`
+- Statement summary:
+  - for the atomic-saturated supported fragment, executable `pmatch` success is
+    equivalent to existence of an ordered value run;
+  - the explanation version additionally packages `pval_explains_state`.
+- Why this matters:
+  - this is now the preferred value-inhabitation bridge for the current
+    supported fragment because it includes nested atomic wrappers.
+- Verifier:
+  - `timeout 180s isabelle build -c -v -j 1 -o timeout=20 -d . PcrePOC` PASS,
+    with `PcrePOC` timing about 18.5 seconds elapsed.
+- Next smallest safe step:
+  - stop growing `Pcre_Values.thy` until proof-time headroom is recovered, or
+    add greedy/lazy support in a carefully isolated theory.
+
 ## Atomic-Saturated Ordered Support (2026-05-29)
 
 - Branch: `master`.
