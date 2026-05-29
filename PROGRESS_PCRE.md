@@ -2,6 +2,32 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Possessive Zero-Phase Determinism (2026-05-29)
+
+- Branch: `master`.
+- Files changed: `Pcre_POC.thy`, `PROGRESS_PCRE.md`.
+- New checked lemmas:
+  - `length_le_one_set_unique`
+  - `qmatch_possessive_zero_length_le_one`
+  - `qtrace_possessive_zero_unique`
+- Statement summary:
+  - once a possessive quantifier is in its `lo = 0` phase, the executable
+    `qmatch` relation exposes at most one output state;
+  - the relational `qtrace` view is therefore unique for
+    `qtrace fuel Possessive 0 hi r st out`.
+- Why this matters:
+  - it states a general commitment property behind PCRE-001/PCRE-002 instead
+    of another `ababa` instance proof.
+  - It remains a current-kernel theorem; PCRE2-specific fidelity still needs a
+    `pcre2test` transcript before claiming exact PCRE2 behavior.
+- Verifier:
+  - `timeout 180s isabelle build -c -v -j 1 -o timeout=20 -d . PcrePOC` PASS,
+    with `PcrePOC` timing about 15.3 seconds elapsed.
+- Next smallest safe step:
+  - lift this uniqueness result to structured possessive values, or prove a
+    first-result theorem relating the zero-phase possessive path to greedy
+    ordering under a fuel condition.
+
 ## Core Executable Completeness Bridge (2026-05-29)
 
 - Branch: `master`.

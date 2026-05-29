@@ -1058,6 +1058,13 @@ lemma set_concat_map_subset:
   shows "set (concat (map f xs)) \<subseteq> set (concat (map g xs))"
   using assms by (induct xs) auto
 
+lemma length_le_one_set_unique:
+  assumes "length xs \<le> 1"
+    and "x \<in> set xs"
+    and "y \<in> set xs"
+  shows "x = y"
+  using assms by (cases xs) auto
+
 lemma qmatch_greedy_lazy_set:
   "set (qmatch fuel Greedy lo hi r st) = set (qmatch fuel Lazy lo hi r st)"
 proof (induct fuel arbitrary: lo hi st)
@@ -1191,6 +1198,33 @@ next
         by (simp add: Suc.hyps)
       show ?thesis
         using \<open>can_take hi\<close> Cons rec_subset by (simp add: Let_def)
+    qed
+  qed
+qed
+
+lemma qmatch_possessive_zero_length_le_one:
+  "length (qmatch fuel Possessive 0 hi r st) \<le> 1"
+proof (induct fuel arbitrary: hi st)
+  case 0
+  then show ?case by simp
+next
+  case (Suc fuel)
+  show ?case
+  proof (cases "can_take hi")
+    case False
+    then show ?thesis by simp
+  next
+    case True
+    let ?next = "progress_outputs st (pmatch fuel r st)"
+    show ?thesis
+    proof (cases ?next)
+      case Nil
+      then show ?thesis
+        using True by (simp add: Let_def)
+    next
+      case (Cons mid rest)
+      then show ?thesis
+        using True Suc.hyps[of "dec_bound hi" mid] by (simp add: Let_def)
     qed
   qed
 qed
@@ -1646,6 +1680,15 @@ lemma qtrace_possessive_zero_iff:
       [] \<Rightarrow> out = st
     | mid # rest \<Rightarrow> qtrace fuel Possessive 0 (dec_bound hi) r mid out)"
   using assms by (auto simp add: qtrace_def Let_def split: list.splits)
+
+lemma qtrace_possessive_zero_unique:
+  assumes "qtrace fuel Possessive 0 hi r st out1"
+    and "qtrace fuel Possessive 0 hi r st out2"
+  shows "out1 = out2"
+  using assms
+    qmatch_possessive_zero_length_le_one[of fuel hi r st]
+    length_le_one_set_unique[of "qmatch fuel Possessive 0 hi r st" out1 out2]
+  by (simp add: qtrace_def)
 
 lemma qtrace_linear_zero_iff:
   assumes "can_take hi"

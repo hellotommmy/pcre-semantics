@@ -168,6 +168,21 @@ possessive_value_outcomes_subset_greedy:
 
 where outcomes include consumed string and captures.
 
+Checked adjacent infrastructure now present:
+
+```isabelle
+qmatch_possessive_zero_length_le_one:
+  length (qmatch fuel Possessive 0 hi r st) <= 1
+
+qtrace_possessive_zero_unique:
+  qtrace fuel Possessive 0 hi r st out1 ==>
+  qtrace fuel Possessive 0 hi r st out2 ==>
+  out1 = out2
+```
+
+This is not enough by itself for the ordered-value bounty, but it captures the
+general zero-phase commitment property that the `ababa` smoke test relies on.
+
 Candidate E: atomic first-value commitment.
 
 ```isabelle
