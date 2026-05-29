@@ -376,15 +376,50 @@ lookbehind_preserves_caps_current_kernel:
 
 ## Next Small Formal Step
 
-Create a new `Pcre_Values.thy` that imports `Pcre_POC` and initially defines
-only:
+The next formal expansion should be greedy/lazy zero-phase value runs, but only
+after preserving proof-time headroom. Current clean `PcrePOC` checks are around
+18.5 seconds under `-o timeout=20`, so adding another large inductive directly
+to `Pcre_Values.thy` is risky.
 
-- `pval`
-- `pflat`
-- `pcaps_after`
-- basic simplification lemmas
-- no broad bridge theorem yet
+Proposed shape:
 
-Then add one narrow bridge theorem for the capture-free fragment or for direct
-constructors only. The first checked increment should avoid changing
-`Pcre_POC.thy` until the value layer shape is stable.
+```isabelle
+inductive pval_backtracking_zero_run ::
+  qkind => nat => nat option => pcre => pstate => pval list => pstate => bool
+```
+
+Boundary:
+
+- only `Greedy` and `Lazy`;
+- repeated body must be `pcore_supported`;
+- constructors should have explicit stop and take cases;
+- the take constructor should require
+  `mid in set (progress_outputs st (pmatch fuel r st))` plus a core value run
+  for `mid`.
+
+Expected theorems:
+
+```isabelle
+pval_backtracking_zero_run_sound_qmatch:
+  pval_backtracking_zero_run q fuel hi r st vs out ==>
+  q in {Greedy, Lazy} ==>
+  out in set (qmatch fuel q 0 hi r st)
+
+qmatch_backtracking_zero_core_value_complete:
+  q in {Greedy, Lazy} ==>
+  pcore_supported r ==>
+  out in set (qmatch fuel q 0 hi r st) ==>
+  exists vs. pval_backtracking_zero_run q fuel hi r st vs out
+```
+
+Proof plan:
+
+- induct on `fuel`, arbitrary `hi st out`;
+- split first on `can_take hi`;
+- in the take branch, obtain `mid` from the concat-map membership before
+  invoking the induction hypothesis;
+- use `pmatch_core_run_complete` to inhabit the repeated item;
+- introduce `vs` explicitly with `exI`, never with broad witness search.
+
+This would make `pval_ordered_run` ready for ordered greedy/lazy constructors
+and would move PCRE-002 from set-level ordering toward ordered value lists.
