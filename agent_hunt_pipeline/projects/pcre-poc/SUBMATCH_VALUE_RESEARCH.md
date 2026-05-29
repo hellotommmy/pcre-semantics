@@ -135,6 +135,27 @@ Good local helper facts:
 
 ## Bounty-Worthy Theorem Candidates
 
+## Current Bounty Triage
+
+Status after the checked value/context work on 2026-05-29:
+
+- Strong infrastructure, not a standalone bounty claim:
+  `pcre_fullmatch_language_mon_context_possessive_quant_subset_greedy`.
+  This is the general match-set inclusion shape the user suggested, but it
+  should be paired with a strictness witness and PCRE2 transcript before
+  claiming PCRE-001 fidelity.
+- Strong infrastructure, plausible sub-bounty material after extension:
+  `pval_ordered_run` and `pmatch_ordered_value_complete`. This is a real
+  submatch-value inhabitation relation, currently covering core plus
+  possessive zero-phase quantifiers. It becomes more PCRE-002-shaped once
+  greedy/lazy ordered value lists are added.
+- PCRE-003 infrastructure only:
+  `ptrace_atomic_first_result` and `ptrace_atomic_unique`. These state atomic
+  first-result commitment, but do not yet prove capture interaction through an
+  atomic context.
+- Do not claim PCRE2-specific fidelity yet:
+  the engine feedback loop still has Perl only; `pcre2test` is not installed.
+
 Candidate 0: fullmatch language/match-set inclusion for possessive repetition.
 
 ```isabelle
