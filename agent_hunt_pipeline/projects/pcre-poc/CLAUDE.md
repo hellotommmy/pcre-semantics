@@ -8,7 +8,7 @@ engine behavior rather than only POSIX language recognition.
 Read this file before doing PCRE work, then read:
 
 - `PCRE_BOUNTIES.md`
-- `PROGRESS_BACKREF.md`
+- `PROGRESS_PCRE.md`
 - `agent_hunt_pipeline/projects/posix-backref/BOUNTY_PROTOCOL.md`
 - `agent_hunt_pipeline/projects/posix-backref/AGENT_ROLES.md`
 - `agent_hunt_pipeline/projects/posix-backref/BRANCHING_AND_RUN_MODE.md`
@@ -27,10 +27,10 @@ The public process inspirations are:
 ## Project Identity
 
 - Project: PCRE-style practical regex semantics in Isabelle/HOL.
-- Main branch: `codex/backref-values`.
+- Main branch: `master`.
 - Primary board: `PCRE_BOUNTIES.md`.
 - Seed theory: `Pcre_POC.thy`.
-- Lightweight session: `pcre_poc/ROOT`, session name `PcrePOC`.
+- Session file: root `ROOT`, session name `PcrePOC`.
 - Relationship to POSIX/backref: separate research lane. Do not change the
   frozen POSIX/backreference semantic statements to make PCRE work easier.
 
@@ -71,9 +71,9 @@ PCRE workers may edit:
 
 - `Pcre_POC.thy`
 - future `Pcre_*.thy` files
-- `pcre_poc/ROOT`
+- `ROOT`
 - `PCRE_BOUNTIES.md`
-- `PROGRESS_BACKREF.md`
+- `PROGRESS_PCRE.md`
 - PCRE-specific project notes under `agent_hunt_pipeline/projects/pcre-poc/`
 
 Do not edit production POSIX/backref files for PCRE work unless the admin
@@ -113,7 +113,7 @@ Use the shared-branch pattern unless the admin explicitly requests a quarantine
 branch:
 
 ```powershell
-git pull --rebase --autostash origin codex/backref-values
+git pull --rebase --autostash origin master
 git status --short --branch
 ```
 
@@ -185,14 +185,14 @@ Avoid:
 Fast scoped check for the seed PCRE theory:
 
 ```powershell
-$env:USER_HOME='/cygdrive/c/Users/kaihong/Documents/formalising_pcre/.codex/isabelle-home'
-& 'C:\Users\kaihong\Desktop\Isabelle2025\contrib\cygwin\bin\bash.exe' -lc 'cd /cygdrive/c/Users/kaihong/Documents/formalising_pcre && /cygdrive/c/Users/kaihong/Desktop/Isabelle2025/bin/isabelle process -l HOL -d . -T Pcre_POC 2>&1'
+$env:USER_HOME='/cygdrive/c/Users/kaihong/Documents/pcre_semantics/.codex/isabelle-home'
+& 'C:\Users\kaihong\Desktop\Isabelle2025\contrib\cygwin\bin\bash.exe' -lc 'cd /cygdrive/c/Users/kaihong/Documents/pcre_semantics && /cygdrive/c/Users/kaihong/Desktop/Isabelle2025/bin/isabelle process -l HOL -d . -T Pcre_POC 2>&1'
 ```
 
 Session target when the local Isabelle heap/log environment permits it:
 
 ```powershell
-& 'C:\Users\kaihong\Desktop\Isabelle2025\contrib\cygwin\bin\bash.exe' -lc 'cd /cygdrive/c/Users/kaihong/Documents/formalising_pcre && /cygdrive/c/Users/kaihong/Desktop/Isabelle2025/bin/isabelle build -v -j 1 -d pcre_poc PcrePOC'
+& 'C:\Users\kaihong\Desktop\Isabelle2025\contrib\cygwin\bin\bash.exe' -lc 'cd /cygdrive/c/Users/kaihong/Documents/pcre_semantics && /cygdrive/c/Users/kaihong/Desktop/Isabelle2025/bin/isabelle build -v -j 1 -d . PcrePOC'
 ```
 
 The raw `isabelle process` command stays interactive after loading the theory,
@@ -200,7 +200,7 @@ so use an outer timeout and inspect the output for real Isabelle errors.
 
 ## Progress Reporting
 
-After every meaningful PCRE step, update `PROGRESS_BACKREF.md` with:
+After every meaningful PCRE step, update `PROGRESS_PCRE.md` with:
 
 - branch;
 - files changed;

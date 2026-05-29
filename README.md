@@ -20,5 +20,5 @@ greedy:     ^(aba|ab|a)*$   => yes
 possessive: ^(aba|ab|a)*+$  => no
 ```
 
-The corresponding Isabelle theorems are `greedy_ababa_accepts` and
-`possessive_ababa_rejects`.
+The corresponding Isabelle theorem pair is tracked as PCRE-001 in
+`PCRE_BOUNTIES.md`.
