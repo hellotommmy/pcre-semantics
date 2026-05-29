@@ -105,6 +105,9 @@ Last updated: 2026-05-29 (standalone repo created)
   - checked general infrastructure;
   - likely bounty-worthy theorem shapes;
   - example/wrapper facts that should not be claimed as bounties.
+- Refined the strict possessive/greedy candidate with an
+  `ambiguous_repair_point` side-condition sketch: first progress state fails
+  the tail, later progress state succeeds the tail.
 - Main answer to the submatch-value relation question:
   - yes, `pval_core_run`, `pval_possessive_zero_run`, and
     `pval_ordered_run` now form a checked state-indexed value inhabitation

@@ -56,6 +56,33 @@ Risk: a useful strictness theorem needs a parametric ambiguity/repair
 hypothesis, not just a concrete witness. A single `ababa` proof should only be
 a sanity corollary.
 
+Promising side-condition shape:
+
+```isabelle
+ambiguous_repair_point fuel body tail st long short \<Longrightarrow>
+  pmatch fuel body st = long # more \<Longrightarrow>
+  short \<in> set more \<Longrightarrow>
+  progress_outputs st [long, short] = [long, short] \<Longrightarrow>
+  set (pmatch fuel tail long) = {} \<Longrightarrow>
+  set (pmatch fuel tail short) \<noteq> {}
+```
+
+Intended theorem shape:
+
+```isabelle
+possessive_greedy_strict_from_repair:
+  ambiguous_repair_point fuel body tail st long short \<Longrightarrow>
+  set (pmatch fuel (PSeq (PQuant Possessive 0 hi body) tail) st)
+    \<subset>
+  set (pmatch fuel (PSeq (PQuant Greedy 0 hi body) tail) st)
+```
+
+This captures the `ababa` phenomenon without baking in `aba|ab|a`: the
+possessive quantifier commits to the first progress state, while greedy
+backtracking may later use a shorter progress state that makes the tail match.
+A fullmatch-language strictness corollary should then instantiate `st` as the
+initial state for the witness subject.
+
 Suggested bounty status: good candidate after the strictness side condition is
 stated cleanly.
 
