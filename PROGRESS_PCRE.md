@@ -2,6 +2,20 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Possessive/Greedy Survey Alignment (2026-05-29)
+
+- Branch: `master`.
+- Files changed:
+  - `docs/POSSESSIVE_GREEDY_SURVEY.md`
+  - `PROGRESS_PCRE.md`
+- Updated the PCRE-001 survey note:
+  - the `ababa` theorem pair is a sanity target, not a bounty-level artifact by
+    itself;
+  - the bounty-level path should use general match-set, ordering, or value
+    theorems;
+  - whole-engine `eval`/`normalization` is unsafe here because `pstate` carries
+    the function-valued capture environment.
+
 ## Proof Rule Update: Eval And Wrapper Boundaries (2026-05-29)
 
 - Branch: `master`.
