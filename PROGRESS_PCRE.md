@@ -2,6 +2,30 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## PCRE2 Tooling Recheck (2026-05-29)
+
+- Branch: `master`.
+- Files changed: `PROGRESS_PCRE.md`.
+- Official docs rechecked:
+  - `https://pcre.org/current/doc/html/pcre2pattern.html`
+  - `https://www.pcre.org/current/doc/html/pcre2matching.html`
+- Relevant documented behavior:
+  - atomic groups prevent later failure from backtracking into the matched
+    group;
+  - possessive quantifiers are the convenient notation for the repeated-item
+    atomic-group case and have the same meaning as the equivalent atomic group;
+  - PCRE2's matching documentation gives examples where possessive quantifiers
+    fail while the non-possessive variant can match.
+- Local tool check:
+  - `pcre2test` is still not on PATH.
+  - `choco search pcre2` and `winget search pcre2` did not expose a direct
+    PCRE2 tools package.
+  - local filesystem searches under the user profile and common program
+    directories did not find `pcre2test.exe`.
+- Consequence:
+  - Perl remains the current compatibility oracle; do not claim PCRE2-specific
+    fidelity until a real `pcre2test` transcript is added.
+
 ## Ordered Value Run Seed Relation (2026-05-29)
 
 - Branch: `master`.
