@@ -2,6 +2,24 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Engine Feedback Path Hook (2026-05-29)
+
+- Branch: `master`.
+- Files changed:
+  - `tools/run_engine_feedback.ps1`
+  - `agent_hunt_pipeline/projects/pcre-poc/ENGINE_FEEDBACK.md`
+  - `PROGRESS_PCRE.md`
+- Change:
+  - `run_engine_feedback.ps1` now accepts `-Pcre2TestPath` and also reads the
+    `PCRE2TEST` environment variable before falling back to PATH lookup.
+- Current observed output remains:
+  - Perl compatibility oracle: possessive `no`, greedy `yes`.
+  - PCRE2: `pcre2test` still missing.
+- Consequence:
+  - still no PCRE2-specific fidelity claim;
+  - once a binary exists, the transcript can be produced without editing the
+    script.
+
 ## Proof-Time Recovery Plan (2026-05-29)
 
 - Branch: `master`.
