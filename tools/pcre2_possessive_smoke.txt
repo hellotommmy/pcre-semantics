@@ -1,0 +1,6 @@
+# pcre2test transcript seed for the possessive-vs-greedy smoke test.
+# Run with: pcre2test tools/pcre2_possessive_smoke.txt
+/^(aba|ab|a)*+$/
+ababa
+/^(aba|ab|a)*$/
+ababa

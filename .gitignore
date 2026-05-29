@@ -1,0 +1,5 @@
+.codex/
+.isabelle/
+heaps/
+*.log
+*.tmp
