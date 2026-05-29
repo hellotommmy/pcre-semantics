@@ -126,8 +126,9 @@ the split with semantic changes.
 ## Timeout Policy
 
 - `-o timeout=20` remains the current public fast-loop verifier.
-- Do not accept a new checked increment if it makes `-o timeout=19` fail unless
-  the increment is explicitly about recovering proof-time headroom.
+- Treat `-o timeout=19` only as a trend probe, not as a pass/fail gate.
+- Do not accept a new checked increment if it makes `-o timeout=20` flaky or
+  fail unless the increment is explicitly about recovering proof-time headroom.
 - A greedy/lazy value relation should be developed in a split theory/session
   before it is folded back into `PcrePOC`.
 

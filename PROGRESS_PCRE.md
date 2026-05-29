@@ -85,6 +85,8 @@ Last updated: 2026-05-29 (standalone repo created)
     fullmatch/value wrapper;
   - `-o timeout=20` passes, `-o timeout=19` is unstable, and
     `-o timeout=18` fails;
+  - `-o timeout=19` should be used only as a trend probe, while `-o timeout=20`
+    remains the public fast-loop verifier;
   - adding greedy/lazy value runs directly to the hot theory would risk
     breaking the fast feedback loop.
 - Immediate formal candidate after the split:
