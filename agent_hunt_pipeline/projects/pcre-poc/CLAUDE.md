@@ -180,6 +180,43 @@ Avoid:
 - conflating unordered language equality with ordered engine equality;
 - changing POSIX/backref definitions as a shortcut.
 
+## Proof Performance Budget
+
+The PCRE pilot should stay in the fast-check loop. Slow Isabelle commands are
+proof-script bugs, not routine build time.
+
+Use these thresholds:
+
+- about 0.5 seconds for broad proof search (`auto`, `simp`, `force`, `blast`,
+  `metis`, large `elim!`): if it visibly hangs, abandon that proof shape and
+  split the goal;
+- 10 seconds on one command: identify the source line and the facts in scope;
+- 30 seconds on one command: replace broad automation with local helper lemmas
+  and explicit cases;
+- 120 seconds: let the timeout wrapper kill the build and inspect the first
+  real slow command;
+- 200 seconds: treat this as a definition or proof-structure bug, not a
+  tolerable PCRE build.
+
+Preferred repairs:
+
+- replace heavy nested or overlapping `fun` definitions by `primrec`,
+  `definition`, or simpler structural recursion with explicit `case ... of ...`
+  branches;
+- use constructor-specific elimination and introduction rules instead of
+  handing automation the whole matcher or value relation;
+- prove small named facts such as output shape, consumed substring, capture
+  update, and first-result facts before the final theorem;
+- avoid global simp rules for recursive matchers unless termination and rewrite
+  direction are clearly harmless.
+
+Imported `backref-values` lesson: the POSIX backreference pilot had a slow
+`fun (sequential)` value-injection definition over many nested, overlapping
+patterns. Replacing it with `primrec` over the regex and explicit value cases in
+the right-hand side reduced cold pilot checks from about 200 seconds to about 16
+seconds. Any PCRE submatch-value or capture-value layer should follow that
+shape from the start.
+
 ## Validation
 
 Fast scoped check for the seed PCRE theory:

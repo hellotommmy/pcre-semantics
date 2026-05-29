@@ -18,3 +18,18 @@ Core loop:
 5. Prove the executable/relational bridge and at least one behavior theorem.
 6. Re-run engine tests and Isabelle checks.
 7. Commit and push.
+
+Proof-performance rules:
+
+- A slow Isabelle command is a proof-engineering bug. Do not respond by only
+  increasing the timeout.
+- Broad `auto`, `simp`, `force`, `blast`, `metis`, and large `elim!` calls
+  should be replaced when they visibly hang. Split the goal, name the local
+  facts, and use constructor-specific eliminators or explicit `cases`.
+- If a recursive definition itself is slow to process, simplify its shape.
+  Prefer `primrec`, `definition`, or one clear structural recursion with
+  explicit `case ... of ...` branches over nested overlapping `fun` patterns.
+- Import the `backref-values` lesson for PCRE value work: the POSIX pilot
+  replaced a slow `fun (sequential)` over many value patterns by a `primrec`
+  over the regex with explicit value cases, cutting cold checks from roughly
+  200 seconds to roughly 16 seconds.

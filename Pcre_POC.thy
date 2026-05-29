@@ -435,25 +435,281 @@ proof -
         st' \<in> set (qmatch fuel q lo hi r st) \<Longrightarrow> consumes_prefix st st'"
       by auto
     show ?case
-      apply (intro conjI allI impI)
-       apply (rename_tac r st st')
-       apply (cases r; cases st)
-                  apply (auto simp add: consumes_prefix_def Let_def capture_update_def
-            progress_outputs_def
-            split: option.splits if_splits qkind.splits list.splits
-            dest!: first_only_subset)
-           apply (metis pmIH consumes_prefix_trans)
-          apply (metis starts_with_drop append_assoc)
-         apply (metis pmIH)
-        apply (metis pmIH)
-       apply (metis qmIH)
-      apply (rename_tac q lo hi r st st')
-      apply (cases st)
-      apply (auto simp add: Let_def progress_outputs_def
-          split: if_splits qkind.splits list.splits)
-      using pmIH qmIH consumes_prefix_trans
-      apply (metis)+
-      done
+    proof (intro conjI)
+      show "\<forall>r st st'. st' \<in> set (pmatch (Suc fuel) r st) \<longrightarrow>
+        consumes_prefix st st'"
+      proof (intro allI impI)
+        fix r st st'
+        assume h: "st' \<in> set (pmatch (Suc fuel) r st)"
+        show "consumes_prefix st st'"
+        proof (cases r)
+          case PFail
+          then show ?thesis using h by simp
+        next
+          case PEps
+          then show ?thesis using h by simp
+        next
+          case (PChar c)
+          then show ?thesis
+          proof (cases st)
+            case (PState l s caps)
+            show ?thesis
+            proof (cases s)
+              case Nil
+              then show ?thesis using h PChar PState by simp
+            next
+              case (Cons d rest)
+              then have "st' = PState (l @ [d]) rest caps"
+                using h PChar PState by auto
+              then show ?thesis
+                using PState Cons by (auto simp add: consumes_prefix_def)
+            qed
+          qed
+        next
+          case (PClass C)
+          then show ?thesis
+          proof (cases st)
+            case (PState l s caps)
+            show ?thesis
+            proof (cases s)
+              case Nil
+              then show ?thesis using h PClass PState by simp
+            next
+              case (Cons d rest)
+              then have "st' = PState (l @ [d]) rest caps"
+                using h PClass PState by auto
+              then show ?thesis
+                using PState Cons by (auto simp add: consumes_prefix_def)
+            qed
+          qed
+        next
+          case (PDot excluded)
+          then show ?thesis
+          proof (cases st)
+            case (PState l s caps)
+            show ?thesis
+            proof (cases s)
+              case Nil
+              then show ?thesis using h PDot PState by simp
+            next
+              case (Cons d rest)
+              then have "st' = PState (l @ [d]) rest caps"
+                using h PDot PState by auto
+              then show ?thesis
+                using PState Cons by (auto simp add: consumes_prefix_def)
+            qed
+          qed
+        next
+          case (PSeq r1 r2)
+          then obtain mid where
+            mid: "mid \<in> set (pmatch fuel r1 st)"
+            and out: "st' \<in> set (pmatch fuel r2 mid)"
+            using h by auto
+          have "consumes_prefix st mid"
+            using pmIH[OF mid] .
+          moreover have "consumes_prefix mid st'"
+            using pmIH[OF out] .
+          ultimately show ?thesis
+            using consumes_prefix_trans by blast
+        next
+          case (PAlt r1 r2)
+          then show ?thesis
+            using h pmIH by auto
+        next
+          case (PQuant q lo hi r)
+          then show ?thesis
+            using h qmIH by simp
+        next
+          case (PCapture n r)
+          then obtain l s caps mid where
+            st: "st = PState l s caps"
+            and mid: "mid \<in> set (pmatch fuel r (PState l s caps))"
+            and out: "st' = capture_update n l mid"
+            using h by (cases st) auto
+          have "consumes_prefix (PState l s caps) mid"
+            using pmIH[OF mid] .
+          then show ?thesis
+            using st out by simp
+        next
+          case (PBackref n)
+          then show ?thesis
+          proof (cases st)
+            case (PState l s caps)
+            show ?thesis
+            proof (cases "caps n")
+              case None
+              then show ?thesis
+                using h PBackref PState by simp
+            next
+              case (Some w)
+              then show ?thesis
+                using h PBackref PState consumes_prefix_backref by auto
+            qed
+          qed
+        next
+          case (PAtomic r)
+          then have "st' \<in> set (pmatch fuel r st)"
+            using h first_only_subset by auto
+          then show ?thesis
+            using pmIH by blast
+        next
+          case (PLook positive r)
+          then show ?thesis
+            using h by (auto split: if_splits)
+        next
+          case (PLookBehind positive r)
+          then show ?thesis
+            using h by (cases st) (auto simp add: Let_def split: if_splits)
+        next
+          case (PCond n yes no)
+          then show ?thesis
+            using h pmIH by (cases "pcaps st n = None") auto
+        next
+          case (PWordBoundary W positive)
+          then show ?thesis
+            using h by (cases st) (auto split: if_splits)
+        next
+          case (PLineStart NL)
+          then show ?thesis
+            using h by (cases st) (auto split: if_splits)
+        next
+          case (PLineEnd NL)
+          then show ?thesis
+            using h by (cases st) (auto split: if_splits)
+        next
+          case PStart
+          then show ?thesis
+            using h by (cases st) (auto split: if_splits)
+        next
+          case PEnd
+          then show ?thesis
+            using h by (cases st) (auto split: if_splits)
+        qed
+      qed
+      show "\<forall>q lo hi r st st'.
+        st' \<in> set (qmatch (Suc fuel) q lo hi r st) \<longrightarrow>
+        consumes_prefix st st'"
+      proof (intro allI impI)
+        fix q lo hi r st st'
+        assume h: "st' \<in> set (qmatch (Suc fuel) q lo hi r st)"
+        show "consumes_prefix st st'"
+        proof (cases "0 < lo")
+          case True
+          show ?thesis
+          proof (cases "can_take hi")
+            case False
+            then show ?thesis using h True by simp
+          next
+            case True
+            from h \<open>0 < lo\<close> True obtain mid where
+              mid: "mid \<in> set (progress_outputs st (pmatch fuel r st))"
+              and out: "st' \<in> set (qmatch fuel q (lo - 1) (dec_bound hi) r mid)"
+              by (auto simp add: progress_outputs_def)
+            have "consumes_prefix st mid"
+              using mid pmIH progress_outputs_subset by blast
+            moreover have "consumes_prefix mid st'"
+              using qmIH[OF out] .
+            ultimately show ?thesis
+              using consumes_prefix_trans by blast
+          qed
+        next
+          case False
+          then have lo0: "lo = 0" by simp
+          show ?thesis
+          proof (cases "can_take hi")
+            case False
+            then show ?thesis using h lo0 by simp
+          next
+            case True
+            let ?next = "progress_outputs st (pmatch fuel r st)"
+            show ?thesis
+            proof (cases q)
+              case Greedy
+              then consider
+                (stop) "st' = st" |
+                (more) mid where
+                  "mid \<in> set ?next"
+                  "st' \<in> set (qmatch fuel Greedy 0 (dec_bound hi) r mid)"
+                using h lo0 True by (auto simp add: Let_def)
+              then show ?thesis
+              proof cases
+                case stop
+                then show ?thesis by simp
+              next
+                case (more mid)
+                have "consumes_prefix st mid"
+                  using more(1) pmIH progress_outputs_subset by blast
+                moreover have "consumes_prefix mid st'"
+                  using qmIH[OF more(2)] .
+                ultimately show ?thesis
+                  using consumes_prefix_trans by blast
+              qed
+            next
+              case Lazy
+              then consider
+                (stop) "st' = st" |
+                (more) mid where
+                  "mid \<in> set ?next"
+                  "st' \<in> set (qmatch fuel Lazy 0 (dec_bound hi) r mid)"
+                using h lo0 True by (auto simp add: Let_def)
+              then show ?thesis
+              proof cases
+                case stop
+                then show ?thesis by simp
+              next
+                case (more mid)
+                have "consumes_prefix st mid"
+                  using more(1) pmIH progress_outputs_subset by blast
+                moreover have "consumes_prefix mid st'"
+                  using qmIH[OF more(2)] .
+                ultimately show ?thesis
+                  using consumes_prefix_trans by blast
+              qed
+            next
+              case Possessive
+              show ?thesis
+              proof (cases ?next)
+                case Nil
+                then show ?thesis
+                  using h lo0 \<open>can_take hi\<close> Possessive by (simp add: Let_def)
+              next
+                case (Cons mid rest)
+                then have mid: "mid \<in> set ?next"
+                  by simp
+                have out: "st' \<in> set (qmatch fuel Possessive 0 (dec_bound hi) r mid)"
+                  using h lo0 \<open>can_take hi\<close> Possessive Cons by (simp add: Let_def)
+                have "consumes_prefix st mid"
+                  using mid pmIH progress_outputs_subset by blast
+                moreover have "consumes_prefix mid st'"
+                  using qmIH[OF out] .
+                ultimately show ?thesis
+                  using consumes_prefix_trans by blast
+              qed
+            next
+              case Linear
+              show ?thesis
+              proof (cases ?next)
+                case Nil
+                then show ?thesis
+                  using h lo0 \<open>can_take hi\<close> Linear by (simp add: Let_def)
+              next
+                case (Cons mid rest)
+                then have mid: "mid \<in> set ?next"
+                  by simp
+                have out: "st' \<in> set (qmatch fuel Linear 0 (dec_bound hi) r mid)"
+                  using h lo0 \<open>can_take hi\<close> Linear Cons by (simp add: Let_def)
+                have "consumes_prefix st mid"
+                  using mid pmIH progress_outputs_subset by blast
+                moreover have "consumes_prefix mid st'"
+                  using qmIH[OF out] .
+                ultimately show ?thesis
+                  using consumes_prefix_trans by blast
+              qed
+            qed
+          qed
+        qed
+      qed
+    qed
   qed
   show "st' \<in> set (pmatch fuel r st) \<Longrightarrow> consumes_prefix st st'"
     using both by blast
@@ -792,6 +1048,16 @@ proof -
     using both by blast
 qed
 
+lemma set_concat_map_cong:
+  assumes "\<And>x. x \<in> set xs \<Longrightarrow> set (f x) = set (g x)"
+  shows "set (concat (map f xs)) = set (concat (map g xs))"
+  using assms by (induct xs) auto
+
+lemma set_concat_map_subset:
+  assumes "\<And>x. x \<in> set xs \<Longrightarrow> set (f x) \<subseteq> set (g x)"
+  shows "set (concat (map f xs)) \<subseteq> set (concat (map g xs))"
+  using assms by (induct xs) auto
+
 lemma qmatch_greedy_lazy_set:
   "set (qmatch fuel Greedy lo hi r st) = set (qmatch fuel Lazy lo hi r st)"
 proof (induct fuel arbitrary: lo hi st)
@@ -799,8 +1065,44 @@ proof (induct fuel arbitrary: lo hi st)
   then show ?case by simp
 next
   case (Suc fuel)
-  then show ?case
-    by (auto simp add: Let_def split: if_splits list.splits)
+  show ?case
+  proof (cases "0 < lo")
+    case True
+    show ?thesis
+    proof (cases "can_take hi")
+      case False
+      then show ?thesis using True by simp
+    next
+      case True
+      have "set (concat
+          (map (qmatch fuel Greedy (lo - 1) (dec_bound hi) r)
+            (progress_outputs st (pmatch fuel r st)))) =
+        set (concat
+          (map (qmatch fuel Lazy (lo - 1) (dec_bound hi) r)
+            (progress_outputs st (pmatch fuel r st))))"
+        by (rule set_concat_map_cong) (simp add: Suc.hyps)
+      then show ?thesis
+        using \<open>0 < lo\<close> \<open>can_take hi\<close> by simp
+    qed
+  next
+    case False
+    then have lo0: "lo = 0" by simp
+    show ?thesis
+    proof (cases "can_take hi")
+      case False
+      then show ?thesis using lo0 by simp
+    next
+      case True
+      let ?next = "progress_outputs st (pmatch fuel r st)"
+      have "set (concat
+          (map (qmatch fuel Greedy 0 (dec_bound hi) r) ?next)) =
+        set (concat
+          (map (qmatch fuel Lazy 0 (dec_bound hi) r) ?next))"
+        by (rule set_concat_map_cong) (simp add: Suc.hyps)
+      then show ?thesis
+        using lo0 \<open>can_take hi\<close> by (simp add: Let_def)
+    qed
+  qed
 qed
 
 lemma qmatch_possessive_subset_greedy:
@@ -810,8 +1112,56 @@ proof (induct fuel arbitrary: lo hi st)
   then show ?case by simp
 next
   case (Suc fuel)
-  then show ?case
-    by (fastforce simp add: Let_def split: if_splits list.splits dest: subsetD)
+  show ?case
+  proof (cases "0 < lo")
+    case True
+    show ?thesis
+    proof (cases "can_take hi")
+      case False
+      then show ?thesis using True by simp
+    next
+      case True
+      have "set (concat
+          (map (qmatch fuel Possessive (lo - 1) (dec_bound hi) r)
+            (progress_outputs st (pmatch fuel r st)))) \<subseteq>
+        set (concat
+          (map (qmatch fuel Greedy (lo - 1) (dec_bound hi) r)
+            (progress_outputs st (pmatch fuel r st))))"
+        by (rule set_concat_map_subset) (simp add: Suc.hyps)
+      then show ?thesis
+        using \<open>0 < lo\<close> \<open>can_take hi\<close> by simp
+    qed
+  next
+    case False
+    then have lo0: "lo = 0" by simp
+    show ?thesis
+    proof (cases "can_take hi")
+      case False
+      then show ?thesis using lo0 by simp
+    next
+      case True
+      let ?next = "progress_outputs st (pmatch fuel r st)"
+      show ?thesis
+      proof (cases ?next)
+        case Nil
+        then show ?thesis
+          using lo0 \<open>can_take hi\<close> by (simp add: Let_def)
+      next
+        case (Cons mid rest)
+        have rec_subset:
+          "set (qmatch fuel Possessive 0 (dec_bound hi) r mid) \<subseteq>
+           set (qmatch fuel Greedy 0 (dec_bound hi) r mid)"
+          by (simp add: Suc.hyps)
+        have greedy_in_more:
+          "set (qmatch fuel Greedy 0 (dec_bound hi) r mid) \<subseteq>
+           set (concat (map (qmatch fuel Greedy 0 (dec_bound hi) r) ?next))"
+          using Cons by auto
+        show ?thesis
+          using lo0 \<open>can_take hi\<close> Cons rec_subset greedy_in_more
+          by (auto simp add: Let_def)
+      qed
+    qed
+  qed
 qed
 
 lemma qmatch_linear_subset_possessive_zero:
@@ -821,8 +1171,28 @@ proof (induct fuel arbitrary: lo hi st)
   then show ?case by simp
 next
   case (Suc fuel)
-  then show ?case
-    by (auto simp add: Let_def split: if_splits list.splits dest: subsetD)
+  show ?case
+  proof (cases "can_take hi")
+    case False
+    then show ?thesis by simp
+  next
+    case True
+    let ?next = "progress_outputs st (pmatch fuel r st)"
+    show ?thesis
+    proof (cases ?next)
+      case Nil
+      then show ?thesis
+        using \<open>can_take hi\<close> by (simp add: Let_def)
+    next
+      case (Cons mid rest)
+      have rec_subset:
+        "set (qmatch fuel Linear 0 (dec_bound hi) r mid) \<subseteq>
+         set (qmatch fuel Possessive 0 (dec_bound hi) r mid)"
+        by (simp add: Suc.hyps)
+      show ?thesis
+        using \<open>can_take hi\<close> Cons rec_subset by (simp add: Let_def)
+    qed
+  qed
 qed
 
 lemma qmatch_lazy_zero_order:
@@ -923,7 +1293,7 @@ theorem qtrace_iff_qmatch:
 
 theorem pcre_search_states_iff_leftmost_trace:
   "out \<in> set (pcre_search_states fuel r s) \<longleftrightarrow> leftmost_trace fuel r s out"
-  by (auto simp add: pcre_search_states_def leftmost_trace_def
+  by (simp add: pcre_search_states_def leftmost_trace_def
       ptrace_def first_nonempty_map_iff)
 
 lemma pcre_search_iff_leftmost_trace:
