@@ -1150,4 +1150,85 @@ proof -
   qed
 qed
 
+section \<open>Ordered value runs for the first supported fragment\<close>
+
+inductive pval_ordered_run ::
+  "nat \<Rightarrow> pcre \<Rightarrow> pstate \<Rightarrow> pval \<Rightarrow> pstate \<Rightarrow> bool"
+where
+  Ordered_Core:
+    "pval_core_run fuel r st v out \<Longrightarrow>
+     pval_ordered_run fuel r st v out"
+| Ordered_Possessive_Zero:
+    "pval_possessive_zero_run fuel hi r st vs out \<Longrightarrow>
+     pval_ordered_run (Suc fuel) (PQuant Possessive 0 hi r) st
+       (PRepVal Possessive vs) out"
+
+definition pordered_supported :: "pcre \<Rightarrow> bool"
+where
+  "pordered_supported r \<longleftrightarrow>
+    pcore_supported r \<or>
+    (\<exists>hi body. r = PQuant Possessive 0 hi body \<and> pcore_supported body)"
+
+lemma pval_ordered_run_sound_pmatch:
+  assumes "pval_ordered_run fuel r st v out"
+  shows "out \<in> set (pmatch fuel r st)"
+  using assms
+proof induction
+  case (Ordered_Core fuel r st v out)
+  then show ?case by (rule pval_core_run_sound_pmatch)
+next
+  case (Ordered_Possessive_Zero fuel hi r st vs out)
+  then show ?case by (rule pval_possessive_zero_run_sound_pmatch_quant)
+qed
+
+lemma pmatch_ordered_value_complete:
+  assumes "pordered_supported r"
+    and "out \<in> set (pmatch fuel r st)"
+  shows "\<exists>v. pval_ordered_run fuel r st v out"
+proof -
+  from assms(1) consider
+    (Core) "pcore_supported r"
+  | (Possessive) hi body where
+      "r = PQuant Possessive 0 hi body" "pcore_supported body"
+    by (auto simp add: pordered_supported_def)
+  then show ?thesis
+  proof cases
+    case Core
+    from pmatch_core_run_complete[OF Core assms(2)]
+    obtain v where run: "pval_core_run fuel r st v out"
+      ..
+    show ?thesis
+    proof (intro exI[of _ v])
+      show "pval_ordered_run fuel r st v out"
+        using run by (rule Ordered_Core)
+    qed
+  next
+    case (Possessive hi body)
+    show ?thesis
+    proof (cases fuel)
+      case 0
+      then show ?thesis using assms(2) Possessive by simp
+    next
+      case (Suc fuel')
+      then have out_quant:
+        "out \<in> set (pmatch (Suc fuel') (PQuant Possessive 0 hi body) st)"
+        using assms(2) Possessive by simp
+      from pmatch_possessive_zero_core_value_complete[
+        OF Possessive(2) out_quant]
+      obtain vs where both:
+        "pval_possessive_zero_run fuel' hi body st vs out \<and>
+         pval_explains_state st (PRepVal Possessive vs) out"
+        ..
+      then have run: "pval_possessive_zero_run fuel' hi body st vs out"
+        by simp
+      show ?thesis
+      proof (intro exI[of _ "PRepVal Possessive vs"])
+        show "pval_ordered_run fuel r st (PRepVal Possessive vs) out"
+          unfolding Suc Possessive(1)
+          using run by (rule Ordered_Possessive_Zero)
+      qed
+    qed
+  qed
+qed
+
 end

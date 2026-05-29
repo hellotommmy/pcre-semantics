@@ -93,6 +93,22 @@ from `st` to `out`. This is more useful than a regex-only `PVal v r` relation
 because `PBackref n` needs `pcaps st n`, `PCond n yes no` needs the current
 capture environment, and capture updates happen in sequence.
 
+Checked seed relation:
+
+```isabelle
+pval_ordered_run fuel r st v out
+```
+
+This currently covers the core fragment plus `PQuant Possessive 0 hi body`
+when `body` is core-supported. The corresponding supported-fragment theorem is:
+
+```isabelle
+pmatch_ordered_value_complete:
+  pordered_supported r ==>
+  out in set (pmatch fuel r st) ==>
+  exists v. pval_ordered_run fuel r st v out
+```
+
 ## Proof-Engineering Rules For This Layer
 
 Follow the `backref-values` performance lesson from the start:

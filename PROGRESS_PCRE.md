@@ -2,6 +2,33 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Ordered Value Run Seed Relation (2026-05-29)
+
+- Branch: `master`.
+- Files changed: `Pcre_Values.thy`, `PROGRESS_PCRE.md`.
+- New checked relation:
+  - `pval_ordered_run`
+- New checked definition:
+  - `pordered_supported`
+- New checked lemmas:
+  - `pval_ordered_run_sound_pmatch`
+  - `pmatch_ordered_value_complete`
+- Statement summary:
+  - `pval_ordered_run` packages the core value relation together with the first
+    ordered quantifier case, `PQuant Possessive 0 hi body`;
+  - every ordered value run is sound for executable `pmatch`;
+  - every executable match in the supported fragment has a structured ordered
+    value witness.
+- Why this matters:
+  - this gives the PCRE track a concrete extensible submatch-value inhabitation
+    relation beyond ad hoc constructor facts.
+- Verifier:
+  - `timeout 180s isabelle build -c -v -j 1 -o timeout=20 -d . PcrePOC` PASS,
+    with `PcrePOC` timing about 18.2 seconds elapsed.
+- Next smallest safe step:
+  - add greedy/lazy zero-phase constructors to `pval_ordered_run`, with explicit
+    ordering theorems rather than just set equality.
+
 ## Possessive Quantifier Value Completeness (2026-05-29)
 
 - Branch: `master`.
