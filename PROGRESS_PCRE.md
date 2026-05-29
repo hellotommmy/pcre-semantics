@@ -58,6 +58,7 @@ Last updated: 2026-05-29 (standalone repo created)
 - New checked predicate:
   - `pordered_supported_atomic`
 - New checked lemma:
+  - `pordered_supported_imp_atomic`
   - `pmatch_ordered_value_complete_atomic`
 - Statement summary:
   - the supported ordered-value fragment can now be closed under nested atomic

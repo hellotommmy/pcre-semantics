@@ -1184,6 +1184,27 @@ where
     "pordered_supported_atomic r \<Longrightarrow>
      pordered_supported_atomic (PAtomic r)"
 
+lemma pordered_supported_imp_atomic:
+  assumes "pordered_supported r"
+  shows "pordered_supported_atomic r"
+proof -
+  from assms have "pcore_supported r \<or>
+    (\<exists>hi body. r = PQuant Possessive 0 hi body \<and> pcore_supported body)"
+    by (simp add: pordered_supported_def)
+  then show ?thesis
+  proof
+    assume "pcore_supported r"
+    then show ?thesis by (rule POrd_Core)
+  next
+    assume "\<exists>hi body. r = PQuant Possessive 0 hi body \<and> pcore_supported body"
+    then obtain hi body where r_eq: "r = PQuant Possessive 0 hi body"
+      and body: "pcore_supported body"
+      by auto
+    show ?thesis
+      unfolding r_eq using body by (rule POrd_Possessive_Zero)
+  qed
+qed
+
 lemma pval_ordered_run_sound_pmatch:
   assumes "pval_ordered_run fuel r st v out"
   shows "out \<in> set (pmatch fuel r st)"
