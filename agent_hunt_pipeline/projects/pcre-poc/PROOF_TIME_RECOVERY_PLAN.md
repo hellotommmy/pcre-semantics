@@ -23,7 +23,8 @@ Current file sizes:
 Current checked boundary:
 
 - `-o timeout=20`: PASS.
-- `-o timeout=19`: PASS on the latest measured run.
+- `-o timeout=19`: unstable; some clean runs pass and some hit the session
+  timeout boundary.
 - `-o timeout=18`: FAILS at the session timeout boundary.
 
 Consequence: the next large inductive relation should not be added directly to

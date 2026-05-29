@@ -83,7 +83,8 @@ Last updated: 2026-05-29 (standalone repo created)
 - Rationale:
   - `Pcre_Values.thy` is now about 1,527 lines after deferring the
     fullmatch/value wrapper;
-  - `-o timeout=20` passes but `-o timeout=18` fails;
+  - `-o timeout=20` passes, `-o timeout=19` is unstable, and
+    `-o timeout=18` fails;
   - adding greedy/lazy value runs directly to the hot theory would risk
     breaking the fast feedback loop.
 - Immediate formal candidate after the split:
@@ -201,13 +202,14 @@ Last updated: 2026-05-29 (standalone repo created)
 
 - Branch: `master`.
 - Files changed: `PROGRESS_PCRE.md`.
-- Current cold-check boundary:
+- Earlier cold-check sample:
   - `timeout 180s isabelle build -c -v -j 1 -o timeout=19 -d . PcrePOC`
     PASS, with `PcrePOC` timing about 17.2 seconds elapsed.
   - `timeout 180s isabelle build -c -v -j 1 -o timeout=18 -d . PcrePOC`
     FAILS at the session timeout boundary.
 - Consequence:
   - keep using `-o timeout=20` as the checked fast-loop target;
+  - treat `-o timeout=19` as an unstable measurement, not a supported target;
   - do not add another large inductive relation to `Pcre_Values.thy` without
     first recovering proof-time headroom or splitting the work into a more
     focused theory/session.
@@ -215,7 +217,8 @@ Last updated: 2026-05-29 (standalone repo created)
 Update after the fullmatch ordered-value bridge:
 
 - `timeout 180s isabelle build -c -v -j 1 -o timeout=19 -d . PcrePOC`
-  still PASS, with `PcrePOC` timing about 17.9 seconds elapsed on that run.
+  is unstable: an earlier run passed with `PcrePOC` timing about 17.9 seconds,
+  while a later clean run hit the session timeout boundary.
 - `timeout 180s isabelle build -c -v -j 1 -o timeout=18 -d . PcrePOC`
   still FAILS at the session timeout boundary.
 - Consequence unchanged:
