@@ -2,6 +2,28 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Lookaround Capture Fidelity Gap (2026-05-29)
+
+- Branch: `master`.
+- Files changed: `Pcre_POC.thy`, `PROGRESS_PCRE.md`.
+- New checked lemmas:
+  - `lookahead_preserves_caps_current_kernel`
+  - `lookbehind_preserves_caps_current_kernel`
+- Statement summary:
+  - in the current PoC kernel, successful lookahead and lookbehind preserve the
+    input capture environment unchanged because assertions return the original
+    state.
+- Fidelity note:
+  - official PCRE2 behavior around captures inside successful positive
+    assertions is more precise than this PoC model, so this theorem documents a
+    gap rather than claiming full PCRE2 fidelity.
+- Verifier:
+  - `timeout 180s isabelle build -c -v -j 1 -o timeout=20 -d . PcrePOC` PASS,
+    with `PcrePOC` timing about 18.3 seconds elapsed.
+- Next smallest safe step:
+  - decide whether to model positive-assertion capture retention or keep
+    lookaround outside the supported ordered-value fragment.
+
 ## Atomic Ordered Value Constructor (2026-05-29)
 
 - Branch: `master`.

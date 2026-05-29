@@ -345,6 +345,18 @@ State and prove, for the current simplified kernel, that `PLook` preserves
 successful positive assertions. This is a useful research result because it
 identifies a precise place where the PoC differs from full PCRE2.
 
+Checked current-kernel facts now present:
+
+```isabelle
+lookahead_preserves_caps_current_kernel:
+  st' in set (pmatch (Suc fuel) (PLook positive r) st) ==>
+  pcaps st' = pcaps st
+
+lookbehind_preserves_caps_current_kernel:
+  st' in set (pmatch (Suc fuel) (PLookBehind positive r) (PState l s caps)) ==>
+  pcaps st' = caps
+```
+
 ## Next Small Formal Step
 
 Create a new `Pcre_Values.thy` that imports `Pcre_POC` and initially defines

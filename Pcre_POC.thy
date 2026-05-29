@@ -1665,10 +1665,20 @@ lemma lookahead_is_zero_width:
   shows "st' = st"
   using assms by (auto split: if_splits)
 
+lemma lookahead_preserves_caps_current_kernel:
+  assumes "st' \<in> set (pmatch (Suc fuel) (PLook positive r) st)"
+  shows "pcaps st' = pcaps st"
+  using lookahead_is_zero_width[OF assms] by simp
+
 lemma lookbehind_is_zero_width:
   assumes "st' \<in> set (pmatch (Suc fuel) (PLookBehind positive r) (PState l s caps))"
   shows "st' = PState l s caps"
   using assms by (auto simp add: Let_def split: if_splits)
+
+lemma lookbehind_preserves_caps_current_kernel:
+  assumes "st' \<in> set (pmatch (Suc fuel) (PLookBehind positive r) (PState l s caps))"
+  shows "pcaps st' = caps"
+  using lookbehind_is_zero_width[OF assms] by simp
 
 lemma word_boundary_is_zero_width:
   assumes "st' \<in> set (pmatch (Suc fuel) (PWordBoundary W positive) (PState l s caps))"
