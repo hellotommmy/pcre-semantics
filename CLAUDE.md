@@ -37,3 +37,9 @@ Proof-performance rules:
   and use explicit `exI`, constructor rules, and `cases`. Do not leave
   schematic witnesses for broad `blast`/`auto`; even short-looking lines can
   push clean checks over the timeout.
+- Avoid `by eval`/code-generation proofs for concrete PCRE examples that touch
+  `pstate` or captures. The capture environment is function-valued, so code
+  generation can introduce equality/enum obligations for functions.
+- Defer wrapper theorems that push the clean session to the timeout boundary.
+  A theorem that is not a semantic layer should not cost the project its fast
+  checker feedback loop.

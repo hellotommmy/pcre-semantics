@@ -36,3 +36,10 @@ Rules:
   broad `blast`/`auto`. Name the witness-producing fact, then use explicit
   `proof (intro exI[of _ ...])`, constructor rules, and local `cases` so the
   command checks immediately.
+- Avoid `by eval`/code-generation proofs for concrete PCRE examples that touch
+  `pstate` or captures: `capenv` is function-valued, so code generation can
+  create equality/enum obligations for functions. Prefer structural lemmas,
+  explicit witnesses, or an external engine transcript for sanity examples.
+- If a wrapper theorem passes once but pushes the clean session to the timeout
+  boundary, defer it or move it to a split theory. Do not keep non-core wrappers
+  in the hot proof path at the cost of the fast feedback loop.

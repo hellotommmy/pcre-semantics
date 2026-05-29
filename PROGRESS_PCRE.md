@@ -2,6 +2,23 @@
 
 Last updated: 2026-05-29 (standalone repo created)
 
+## Proof Rule Update: Eval And Wrapper Boundaries (2026-05-29)
+
+- Branch: `master`.
+- Files changed:
+  - `AGENTS.md`
+  - `CLAUDE.md`
+  - `agent_hunt_pipeline/projects/pcre-poc/CLAUDE.md`
+  - `PROGRESS_PCRE.md`
+- Added two proof-engineering rules from the PCRE-001 sanity attempt:
+  - avoid `by eval`/code-generation proofs for concrete examples involving
+    `pstate` or captures because `capenv` is function-valued;
+  - defer non-core wrapper theorems when they push the clean session to the
+    timeout boundary.
+- Verification impact:
+  - documentation-only change after restoring the successful `-o timeout=20`
+    build.
+
 ## Engine Feedback Path Hook (2026-05-29)
 
 - Branch: `master`.

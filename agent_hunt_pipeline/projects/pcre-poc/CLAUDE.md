@@ -212,6 +212,11 @@ Preferred repairs:
   discover schematic witnesses;
 - avoid global simp rules for recursive matchers unless termination and rewrite
   direction are clearly harmless.
+- avoid `by eval`/code-generation proofs for concrete examples involving
+  `pstate` or captures: `capenv` is function-valued, and generated equality can
+  require enum/equal instances for functions;
+- if a wrapper theorem pushes the clean session to the timeout boundary, defer
+  it or move it into a split theory instead of keeping it in the hot path.
 
 Imported `backref-values` lesson: the POSIX backreference pilot had a slow
 `fun (sequential)` value-injection definition over many nested, overlapping
